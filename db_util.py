@@ -18,7 +18,7 @@ def save_pd_to_csv(dataframe):
 def load_csv_to_pd(filename):
     """takes input filename as parameter and displays file as a large table"""
     dataframe = pd.read_csv(filename)
-    show(dataframe)
+    return dataframe
 
 
 class RDSDatabaseConnector():
@@ -34,9 +34,26 @@ class RDSDatabaseConnector():
             return dataframe
 
     
+class DataTransform():
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
 
+
+    def set_column_to_int(self):
+        """sets a list of column names to dtype integer in the dataframe given"""
+        set_list = ["id", "member_id", "loan_amount", "funded_amount", "funded_amount_inv","annual_inc", "inq_last_tmths","mths_since_last_record", "open_accounts", "total_accounts", "collections_12_mths_ex_med", "mths_since_last_major_derog"]
+        int32_list = []
+        for i in range(len(set_list)):
+            int32_list.append("int32")
+        to_integer_list = dict(zip(set_list, int32_list))
+        self.dataframe.astype(to_integer_list)
+        show(self.dataframe)
+
+    
 
 if __name__ == "__main__":
-    rdsdbc = RDSDatabaseConnector(load_credentials())
-    save_pd_to_csv(rdsdbc.database_to_pandas_dataframe())
-    load_csv_to_pd("loan_payments.csv")
+    #rdsdbc = RDSDatabaseConnector(load_credentials())
+    #save_pd_to_csv(rdsdbc.database_to_pandas_dataframe())
+    dt = DataTransform(load_csv_to_pd("loan_payments.csv"))
+    dt.set_column_to_int()
+    
