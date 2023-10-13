@@ -41,19 +41,33 @@ class DataTransform():
 
     def set_column_to_int(self):
         """sets a list of column names to dtype integer in the dataframe given"""
-        set_list = ["id", "member_id", "loan_amount", "funded_amount", "funded_amount_inv","annual_inc", "inq_last_tmths","mths_since_last_record", "open_accounts", "total_accounts", "collections_12_mths_ex_med", "mths_since_last_major_derog"]
+
+        #creates list of all column names to set to dtype int
+        set_list = ["id", "member_id", "loan_amount", "open_accounts", "total_accounts", "inq_last_6mths", "open_accounts", "total_accounts", "collections_12_mths_ex_med"]
+
+        #creates a list containing "int32" with len = to set_list
         int32_list = []
         for i in range(len(set_list)):
             int32_list.append("int32")
         to_integer_list = dict(zip(set_list, int32_list))
-        self.dataframe.astype(to_integer_list)
-        show(self.dataframe)
 
-    
+        self.dataframe.astype(to_integer_list)
+
+
+    def set_column_to_date(self):
+        """sets a list of column names to dtype datetime in the dataframe given"""
+
+        column_list = ["issue_date", "earliest_credit_line", "last_payment_date", "next_payment_date", "last_credit_pull_date"]
+
+        for column in column_list:
+            self.dataframe[column] = pd.to_datetime(self.dataframe[column]).dt.date
+            
+        show(self.dataframe)
 
 if __name__ == "__main__":
     #rdsdbc = RDSDatabaseConnector(load_credentials())
     #save_pd_to_csv(rdsdbc.database_to_pandas_dataframe())
     dt = DataTransform(load_csv_to_pd("loan_payments.csv"))
     dt.set_column_to_int()
+    dt.set_column_to_date()
     
