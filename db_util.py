@@ -38,13 +38,23 @@ class DataTransform():
     def __init__(self, dataframe):
         self.dataframe = dataframe
 
+    def call_all_cleaners(self):
+        """puts all the dataframe cleaning function into one callable function"""
+
+        self.set_column_to_custom()
+        self.set_column_to_date()
+        #self.set_column_to_float()
+        #self.set_column_to_int()
+        self.set_numeric()
+        show(self.dataframe)
+
 
     def set_column_to_int(self):
         """sets a list of column names to dtype integer in the dataframe given"""
 
         #creates list of all column names to set to dtype int
-        set_list = ["id", "member_id", "loan_amount", "open_accounts", "total_accounts", "inq_last_6mths", "open_accounts", "total_accounts", "collections_12_mths_ex_med"]
 
+        
         #creates a list containing "int32" with len = to set_list
         int32_list = []
         for i in range(len(set_list)):
@@ -52,6 +62,17 @@ class DataTransform():
         to_integer_list = dict(zip(set_list, int32_list))
 
         self.dataframe.astype(to_integer_list)
+        
+
+
+    def set_numeric(self):
+        numeric_list = ["id", "member_id", "loan_amount", "funded_amount", "funded_amount_inv", "term",  "int_rate", "employment_length", "annual_inc", "dti", "delinq_2yrs", "inq_last_6mths", "mths_since_last_delinq", "mths_since_last_delinq",  "open_accounts", "total_accounts", "out_prncp", "out_prncp_inv", "total_payment", "total_payment_inv", "total_rec_prncp", "total_rec_int", "total_rec_late_fee", "recoveries", "collection_recovery_fee", "last_payment_amount", "collections_12_mths_ex_med", "mths_since_last_major_derog"]
+        numeric_dataframe = self.dataframe[numeric_list]
+        qualitive_dataframe = self.dataframe.drop(columns = numeric_list)
+        for column in numeric_list:
+            self.dataframe[column] = pd.to_numeric(self.dataframe[column], errors = 'raise')
+        
+
 
 
     def set_column_to_date(self):
@@ -61,13 +82,28 @@ class DataTransform():
 
         for column in column_list:
             self.dataframe[column] = pd.to_datetime(self.dataframe[column]).dt.date
-            
-        show(self.dataframe)
+
+    def set_column_to_custom(self):
+        """sets seperate columns to appropriate dtypes and cleans them using the dataframe given"""
+
+        self.dataframe["term"] = self.dataframe["term"].str.replace('\D', '', regex = True)
+
+        self.dataframe["employment_length"] = self.dataframe["employment_length"].apply(self.clean_employment_length)
+        self.dataframe["employment_length"] = self.dataframe["employment_length"].str.replace('\D', '', regex = True)
+        
+
+
+    def clean_employment_length(self, length):
+        if length == "< 1 year":
+            return ("0")
+        elif length == "10+ years":
+            return ("11")
+        else:
+            return length
+
 
 if __name__ == "__main__":
     #rdsdbc = RDSDatabaseConnector(load_credentials())
     #save_pd_to_csv(rdsdbc.database_to_pandas_dataframe())
     dt = DataTransform(load_csv_to_pd("loan_payments.csv"))
-    dt.set_column_to_int()
-    dt.set_column_to_date()
-    
+    dt.call_all_cleaners()
