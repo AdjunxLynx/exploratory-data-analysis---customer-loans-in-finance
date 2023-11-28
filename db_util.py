@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, text
 from pandasgui import show
 import yaml
 import pandas as pd
-
+import numpy as np
 
 
 def load_credentials():
@@ -36,7 +36,7 @@ class RDSDatabaseConnector():
     
 class DataTransform():
     def __init__(self, dataframe):
-        self.call_all_cleaners(dataframe)
+        pass
 
     def call_all_cleaners(self, dataframe):
         """puts all the dataframe cleaning function into one callable function"""
@@ -50,8 +50,7 @@ class DataTransform():
         dataframe = dataframe.rename(columns = {"Unnamed: 0": "Index"})
         dataframe = dataframe.set_index("Index")
 
-        print(dataframe.info())
-        show(dataframe)
+        #print(dataframe.info())
 
         return(dataframe)
 
@@ -128,8 +127,46 @@ class DataTransform():
         else:
             return length
 
+class DataFrameInfo():
+    def __init__(self, dataframe):
+        pass
+    
+    def call_all_information(self, dataframe):
+        #self.describe_all_columns(dataframe)
+        self.get_null_percentage(dataframe)
+        self.get_statistics(dataframe)
+        self.get_shape(dataframe)
+
+    def describe_all_columns(self, dataframe):
+        print(dataframe.describe(percentiles = [.5]))
+    
+    def get_statistics(self, dataframe):
+        count = dataframe.count()
+        mean = dataframe.mean()
+        min = dataframe.min()
+        max = dataframe.max()
+        std = dataframe.std()
+        dataframes = [count, mean, min, max, std]
+        statistical_df = pd.concat(dataframes, axis = 1)
+        statistical_df = statistical_df.rename(columns={0: "Count", 1: "Mean", 2: "Min", 3: "Max", 4: "Standard Deviation"}, errors = "raise")
+        show(statistical_df)
+        return statistical_df
+
+    def get_null_percentage(self, dataframe):
+        pass
+    
+    def get_shape(self, dataframe):
+        print(dataframe.shape())
 
 if __name__ == "__main__":
     rdsdbc = RDSDatabaseConnector(load_credentials())
     save_pd_to_csv(rdsdbc.database_to_pandas_dataframe())
-    dt = DataTransform(load_csv_to_pd("loan_payments.csv"))
+    dataframe = load_csv_to_pd("loan_payments.csv")
+
+    dt = DataTransform(dataframe)
+    dataframe = dt.call_all_cleaners(dataframe)
+
+    dti = DataFrameInfo(dataframe)
+    dti.call_all_information(dataframe)
+
+    #show(dataframe)
