@@ -1,9 +1,12 @@
-from sqlalchemy import create_engine, text
+
 from pandasgui import show
 import yaml
 import pandas as pd
 import numpy as np
 import warnings
+import matplotlib.pyplot as plt
+from sqlalchemy import create_engine, text
+#from statsmodels.tsa.seasonal import seasonal_decompose
 
 
 def load_credentials():
@@ -21,7 +24,6 @@ def load_csv_to_pd(filename):
     dataframe = pd.read_csv(filename)
     return dataframe
 
-
 class RDSDatabaseConnector():
     def __init__(self, credentials):
         url = ("postgresql+psycopg2://" + str(credentials['RDS_USER']) + ":" + str(credentials['RDS_PASSWORD']) + "@" + str(credentials['RDS_HOST']) + "/" + str(credentials['RDS_DATABASE']))
@@ -34,7 +36,6 @@ class RDSDatabaseConnector():
             dataframe = pd.DataFrame(data = database)
             return dataframe
 
-    
 class DataTransform():
     def __init__(self, dataframe):
         pass
@@ -138,7 +139,26 @@ class DataFrameInfo():
         statistical_df = self.get_statistics(dataframe)
         self.get_shape(dataframe)
         self.get_mode(dataframe)
+        self.show_null_barchart(dataframe)
+        self.trend_analysis(dataframe)
         return statistical_df
+
+    def trend_analysis(self, dataframe):
+        dataframe.index = pd.to_datetime(dataframe.index)  # Convert index to datetime if not already
+        print(self.get_column_headers(dataframe))
+        result = seasonal_decompose(dataframe['column_name'], model='additive', period=1)  # Replace 'column_name' with your specific column
+
+        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(12, 8))
+        ax1.plot(dataframe['column_name'], label='Original')
+        ax1.legend()
+        ax2.plot(result.trend, label='Trend')
+        ax2.legend()
+        ax3.plot(result.seasonal, label='Seasonal')
+        ax3.legend()
+        ax4.plot(result.resid, label='Residuals')
+        ax4.legend()
+        plt.tight_layout()
+        plt.show()
 
     def describe_all_columns(self, dataframe):
         """prints analysis on the dataframe, giving quick information on the dataframe"""
@@ -189,6 +209,20 @@ class DataFrameInfo():
         mode_series = dataframe.mode().iloc[0]
         mode_df = pd.DataFrame({'Mode': mode_series})
         return mode_df
+
+    def show_null_barchart(self,dataframe):
+        plt.figure(figsize=(10, 6))
+    
+        missing_percentage = dataframe.isnull().mean() * 100  # Calculate the percentage of missing values for each column
+        missing_percentage = missing_percentage[missing_percentage > 0]  # Filter columns with missing values
+
+        missing_percentage.plot(kind='bar')
+        plt.xlabel('Columns')
+        plt.ylabel('Percentage of Missing Values')
+        plt.title('Percentage of Missing Values in Columns')
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.show()
 
     def get_null_percentage(self, dataframe):
         """returns the percentage of null values in the column"""
