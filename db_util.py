@@ -1,4 +1,5 @@
 
+
 from pandasgui import show
 import yaml
 import pandas as pd
@@ -37,7 +38,7 @@ class RDSDatabaseConnector():
             return dataframe
 
 class DataTransform():
-    def __init__(self, dataframe):
+    def __init__(self):
         pass
 
     def call_all_cleaners(self, dataframe):
@@ -47,6 +48,7 @@ class DataTransform():
         
         dataframe = self.set_column_to_custom(dataframe)
         dataframe = self.set_column_to_date(dataframe, date_list)
+
         dataframe = self.set_numeric(dataframe, numeric_list)
         dataframe = self.set_qualitative(dataframe)
         dataframe = dataframe.rename(columns = {"Unnamed: 0": "Index"})
@@ -104,9 +106,8 @@ class DataTransform():
 
     def set_column_to_date(self, dataframe, date_list):
         """sets a list of column names to dtype datetime in the dataframe given"""
-        
         for column in date_list:
-            dataframe[column] = pd.to_datetime(dataframe[column]).dt.date
+            dataframe[column] = pd.to_datetime(dataframe[column], errors = "coerce", format="%Y-%m-%d").dt.date
         return(dataframe)
 
     def set_column_to_custom(self, dataframe):
@@ -129,36 +130,20 @@ class DataTransform():
         else:
             return length
 
+
 class DataFrameInfo():
-    def __init__(self, dataframe):
+    def __init__(self):
         pass
     
     def call_all_information(self, dataframe):
         """Calls all functions that analyses dataframe, and shows that as a smaller dataframe"""
         self.describe_all_columns(dataframe)
-        statistical_df = self.get_statistics(dataframe)
+        statistics_dataframe = self.get_statistics(dataframe)
+        show(statistics_dataframe)
         self.get_shape(dataframe)
-        self.get_mode(dataframe)
         self.show_null_barchart(dataframe)
-        self.trend_analysis(dataframe)
-        return statistical_df
 
-    def trend_analysis(self, dataframe):
-        dataframe.index = pd.to_datetime(dataframe.index)  # Convert index to datetime if not already
-        print(self.get_column_headers(dataframe))
-        result = seasonal_decompose(dataframe['column_name'], model='additive', period=1)  # Replace 'column_name' with your specific column
-
-        fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(12, 8))
-        ax1.plot(dataframe['column_name'], label='Original')
-        ax1.legend()
-        ax2.plot(result.trend, label='Trend')
-        ax2.legend()
-        ax3.plot(result.seasonal, label='Seasonal')
-        ax3.legend()
-        ax4.plot(result.resid, label='Residuals')
-        ax4.legend()
-        plt.tight_layout()
-        plt.show()
+        return dataframe
 
     def describe_all_columns(self, dataframe):
         """prints analysis on the dataframe, giving quick information on the dataframe"""
@@ -182,26 +167,26 @@ class DataFrameInfo():
         distinct_values_df = pd.DataFrame.from_dict(distinct_values_count, orient='index', columns=["Distinct_Values_Count"])
         distinct_values_df.index.name = 'Column_Name'
 
-
         return distinct_values_df
 
     def get_statistics(self, dataframe):
         """returns a Dataframe from the inputted Dataframe, giving statistical data on the Dataframe such as
         non-null count, mean value of all the data in a column, minimum value, maximum value, standard deviation of the column
         median value of column, percentage of value that is Null (np.NaN), amount of distinct values in categorical columns, most frequent value"""
+
         count = dataframe.count()
-        mean = dataframe.mean()
-        min = dataframe.min()
-        max = dataframe.max()
-        std = dataframe.std()
-        med = dataframe.median()
         mode = self.get_mode(dataframe)
+        mean = dataframe.select_dtypes(include=['int64', 'float64']).mean()
+        min = dataframe.select_dtypes(include=['int64', 'float64']).min()
+        max = dataframe.select_dtypes(include=['int64', 'float64']).max()
+        std = dataframe.select_dtypes(include=['int64', 'float64']).std()
+        med = dataframe.select_dtypes(include=['int64', 'float64']).median()
         null_percentage_df = self.get_null_percentage(dataframe)
         distinct_df = self.get_distinct_categories(dataframe)
 
         dataframes = [count, mean, min, max, std, med, mode, null_percentage_df, distinct_df]
         statistical_df = pd.concat(dataframes, axis = 1)
-        statistical_df = statistical_df.rename(columns={0: "Count", 1: "Mean", 2: "Min", 3: "Max", 4: "Standard Deviation", 5: "Median"}, errors = "raise").T
+        statistical_df = statistical_df.rename(columns={0: "Count", 1: "Mean", 2: "Min", 3: "Max", 4: "Standard Deviation", 5: "Median"}, errors = "raise")
         return statistical_df
     
     def get_mode(self, dataframe):
@@ -229,7 +214,7 @@ class DataFrameInfo():
         headers = self.get_column_headers(dataframe)
         percentage_list = []
 
-        for (column_name, column_data) in dataframe.iteritems():
+        for column_name in headers:
             null_count = dataframe[column_name].isnull().sum()
             total_count = len(dataframe[column_name]) 
             percentage = ((null_count / total_count) * 100)
@@ -241,9 +226,7 @@ class DataFrameInfo():
 
     def get_column_headers(self, dataframe):
         """returns a list of the column titles from the dataframe given"""
-        column_names = []
-        for (column_name, column_data) in dataframe.iteritems():
-            column_names.append(column_name)
+        column_names = dataframe.columns.tolist()
 
         return column_names
 
@@ -252,18 +235,52 @@ class DataFrameInfo():
         print("The Dataframe Shape is: " , dataframe.shape)
 
    
+class DataFrameTransform():
+    def __init__(self):
+        pass
+
+    def call_all_transformers(self, dataframe):
+        dataframe = self.drop_nulls(dataframe)
+        dataframe = self.get_data_with_nulls(dataframe)
+        show(dataframe)
+
+
+    def drop_nulls(self, dataframe):
+        null_percentage_df = dataframe.isnull().sum() / len(dataframe) * 100
+        columns_to_drop = null_percentage_df[null_percentage_df > 50].index.tolist()
+        dataframe.drop(columns=columns_to_drop, inplace=True)
+    
+        return dataframe
+    
+
+    def get_data_with_nulls(self, dataframe):
+        data_with_nulls = dataframe[dataframe.isnull().any(axis=1)]
+
+        return data_with_nulls
+
+
+    def get_data_without_nulls(self, dataframe):
+        data_without_nulls = dataframe.dropna()
+
+        return data_without_nulls
+
+
 if __name__ == "__main__":
+    # to stop spam of deprecated feature
+    warnings.simplefilter(action='ignore', category=FutureWarning) 
 
-    warnings.simplefilter(action='ignore', category=FutureWarning) # to stop spam of deprecated feature
-
+    #connects to online server, downloads the database, and stores in a file called loan_payments.csv
     rdsdbc = RDSDatabaseConnector(load_credentials())
     save_pd_to_csv(rdsdbc.database_to_pandas_dataframe())
     dataframe = load_csv_to_pd("loan_payments.csv")
 
-    dt = DataTransform(dataframe)
+    #creates all the classes
+    dt = DataTransform()
+    dti = DataFrameInfo()
+    dtf = DataFrameTransform()
+
+    #calls the main function in each data analysis class
     dataframe = dt.call_all_cleaners(dataframe)
+    #dataframe = dti.call_all_information(dataframe)
+    dtf.call_all_transformers(dataframe)
 
-    dti = DataFrameInfo(dataframe)
-    statistical_df = dti.call_all_information(dataframe)
-
-    show(statistical_df)
