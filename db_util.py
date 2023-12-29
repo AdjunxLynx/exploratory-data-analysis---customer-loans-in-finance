@@ -1,5 +1,3 @@
-
-
 from pandasgui import show
 import yaml
 import pandas as pd
@@ -7,18 +5,19 @@ import numpy as np
 import warnings
 import matplotlib.pyplot as plt
 from sqlalchemy import create_engine, text
-#from statsmodels.tsa.seasonal import seasonal_decompose
+
+
 
 
 def load_credentials():
     """loads credentials from a file called 'credentials.yaml' and returns it as a dictionary"""
-    with open('credentials.yaml', 'r') as file:
+    with open("credentials.yaml", "r") as file:
         credentials = yaml.safe_load(file)
     return credentials
 
 def save_pd_to_csv(dataframe):
     """takes input parameter and dumps into a file in directory called 'loan_payments.csv'"""
-    dataframe.to_csv('loan_payments.csv')
+    dataframe.to_csv("loan_payments.csv")
 
 def load_csv_to_pd(filename):
     """takes input filename as parameter and displays file as a large table"""
@@ -27,7 +26,7 @@ def load_csv_to_pd(filename):
 
 class RDSDatabaseConnector():
     def __init__(self, credentials):
-        url = ("postgresql+psycopg2://" + str(credentials['RDS_USER']) + ":" + str(credentials['RDS_PASSWORD']) + "@" + str(credentials['RDS_HOST']) + "/" + str(credentials['RDS_DATABASE']))
+        url = ("postgresql+psycopg2://" + str(credentials["RDS_USER"]) + ":" + str(credentials["RDS_PASSWORD"]) + "@" + str(credentials["RDS_HOST"]) + "/" + str(credentials["RDS_DATABASE"]))
         self.engine = create_engine(url)
 
     def database_to_pandas_dataframe(self):
@@ -60,7 +59,11 @@ class DataTransform():
 
     def set_numeric(self, dataframe, numeric_list):
         for column in numeric_list:
-            dataframe[column] = pd.to_numeric(dataframe[column], errors = "raise")
+            
+            dataframe[column] = pd.to_numeric(dataframe[column], errors = "coerce", downcast = "integer")
+            dataframe[column] = dataframe[column].round()
+            dataframe[column] = dataframe[column].apply(lambda x: round(x) if not pd.isnull(x) else x).astype("Int64")
+
         return(dataframe)
     
     def set_qualitative(self, dataframe):
@@ -113,9 +116,9 @@ class DataTransform():
     def set_column_to_custom(self, dataframe):
         """sets seperate columns to appropriate dtypes and cleans them using the dataframe given"""
 
-        dataframe["term"] = dataframe["term"].str.replace('\D', '', regex = True)
+        dataframe["term"] = dataframe["term"].str.replace("\D", "", regex = True)
         dataframe["employment_length"] = dataframe["employment_length"].apply(self.clean_employment_length)
-        dataframe["employment_length"] = dataframe["employment_length"].str.replace('\D', '', regex = True)
+        dataframe["employment_length"] = dataframe["employment_length"].str.replace("\D", "", regex = True)
         dataframe["policy_code"] = dataframe["policy_code"].astype(str)
         dataframe["policy_code"] = dataframe["policy_code"].str.replace("1", "Available")
         dataframe["policy_code"] = dataframe["policy_code"].str.replace("0", "Not Available")
@@ -155,7 +158,7 @@ class DataFrameInfo():
         returns a DataFrame with NaN values where the column dtype is not of category,
         and then the distinct count when the column dtype is"""
         headers = self.get_column_headers(dataframe)
-        categorical_columns = dataframe.select_dtypes(include=['category']).columns.tolist()
+        categorical_columns = dataframe.select_dtypes(include=["category"]).columns.tolist()
         distinct_values_count = {}
 
         for column in dataframe.columns:
@@ -164,8 +167,8 @@ class DataFrameInfo():
             else:
                 distinct_values_count[column] = np.nan
 
-        distinct_values_df = pd.DataFrame.from_dict(distinct_values_count, orient='index', columns=["Distinct_Values_Count"])
-        distinct_values_df.index.name = 'Column_Name'
+        distinct_values_df = pd.DataFrame.from_dict(distinct_values_count, orient="index", columns=["Distinct_Values_Count"])
+        distinct_values_df.index.name = "Column_Name"
 
         return distinct_values_df
 
@@ -176,11 +179,11 @@ class DataFrameInfo():
 
         count = dataframe.count()
         mode = self.get_mode(dataframe)
-        mean = dataframe.select_dtypes(include=['int64', 'float64']).mean()
-        min = dataframe.select_dtypes(include=['int64', 'float64']).min()
-        max = dataframe.select_dtypes(include=['int64', 'float64']).max()
-        std = dataframe.select_dtypes(include=['int64', 'float64']).std()
-        med = dataframe.select_dtypes(include=['int64', 'float64']).median()
+        mean = dataframe.select_dtypes(include=["int64", "float64"]).mean()
+        min = dataframe.select_dtypes(include=["int64", "float64"]).min()
+        max = dataframe.select_dtypes(include=["int64", "float64"]).max()
+        std = dataframe.select_dtypes(include=["int64", "float64"]).std()
+        med = dataframe.select_dtypes(include=["int64", "float64"]).median()
         null_percentage_df = self.get_null_percentage(dataframe)
         distinct_df = self.get_distinct_categories(dataframe)
 
@@ -192,7 +195,7 @@ class DataFrameInfo():
     def get_mode(self, dataframe):
         """returns the most frequent value for each column in the given dataframe"""
         mode_series = dataframe.mode().iloc[0]
-        mode_df = pd.DataFrame({'Mode': mode_series})
+        mode_df = pd.DataFrame({"Mode": mode_series})
         return mode_df
 
     def show_null_barchart(self,dataframe):
@@ -201,10 +204,10 @@ class DataFrameInfo():
         missing_percentage = dataframe.isnull().mean() * 100  # Calculate the percentage of missing values for each column
         missing_percentage = missing_percentage[missing_percentage > 0]  # Filter columns with missing values
 
-        missing_percentage.plot(kind='bar')
-        plt.xlabel('Columns')
-        plt.ylabel('Percentage of Missing Values')
-        plt.title('Percentage of Missing Values in Columns')
+        missing_percentage.plot(kind="bar")
+        plt.xlabel("Columns")
+        plt.ylabel("Percentage of Missing Values")
+        plt.title("Percentage of Missing Values in Columns")
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.show()
@@ -221,7 +224,7 @@ class DataFrameInfo():
             percentage_list.append(percentage)
 
         null_percentage_series = pd.Series(percentage_list, index=headers)
-        null_percentage_df = pd.DataFrame(null_percentage_series, columns=['Null Percentages'])
+        null_percentage_df = pd.DataFrame(null_percentage_series, columns=["Null Percentages"])
         return null_percentage_df
 
     def get_column_headers(self, dataframe):
@@ -242,15 +245,41 @@ class DataFrameTransform():
     def call_all_transformers(self, dataframe):
         dataframe = self.drop_nulls(dataframe)
         dataframe = self.get_data_with_nulls(dataframe)
+        dataframe = self.drop_important_rows(dataframe)
+        show(dataframe)
+        dataframe = dataframe.apply(self.infer_funded_amount, axis="columns")
         show(dataframe)
 
 
     def drop_nulls(self, dataframe):
         null_percentage_df = dataframe.isnull().sum() / len(dataframe) * 100
         columns_to_drop = null_percentage_df[null_percentage_df > 50].index.tolist()
-        dataframe.drop(columns=columns_to_drop, inplace=True)
+        dataframe = dataframe.drop(columns=columns_to_drop)
     
         return dataframe
+    
+
+    def drop_important_rows(self, dataframe):
+        dataframe = dataframe.dropna(subset=["id", "member_id"])
+        return dataframe
+    
+
+    def infer_funded_amount(self, row):
+        # if loan_amount and funded_amount are the same, infer funded_amount_inv
+        if pd.notnull(row["loan_amount"]) and pd.notnull(row["funded_amount"]):
+            if row["loan_amount"] == row["funded_amount"]:
+                row["funded_amount_inv"] = row["loan_amount"]
+
+        # if loan amount and funded_amount_inv are the same, infer funded_amount
+        elif pd.notnull(row["loan_amount"]) and pd.notnull(row["funded_amount_inv"]):
+            if row["loan_amount"] == row["funded_amount_inv"]:
+                row["funded_amount"] = row["loan_amount"]
+        
+        #if both funded_amount/_inv are the same, infer loan_amount
+        elif pd.notnull(row["funded_amount"]) and pd.notnull(row["funded_amount_inv"]):
+            if row["funded_amount"] == row["funded_amount_inv"]:
+                row["loan_amount"] = row["funded_amount"]
+
     
 
     def get_data_with_nulls(self, dataframe):
@@ -267,7 +296,7 @@ class DataFrameTransform():
 
 if __name__ == "__main__":
     # to stop spam of deprecated feature
-    warnings.simplefilter(action='ignore', category=FutureWarning) 
+    warnings.simplefilter(action="ignore", category=FutureWarning) 
 
     #connects to online server, downloads the database, and stores in a file called loan_payments.csv
     rdsdbc = RDSDatabaseConnector(load_credentials())
