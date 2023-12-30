@@ -75,23 +75,23 @@ class DataTransform():
                 for number in range(1,6):
                     sub_grade.append((letter + str(number)))
 
-            home_ownership_list = ["OWN", "RENT", "MORTGAGE", "OTHER"]
+            home_ownership_list = ["OWN", "RENT", "MORTGAGE", "OTHER", "NOT GIVEN"]
             verification_status = ["Verified", "Source Verified", "Not Verified"]
             payment_plan_list = ["y", "n"]
             application_list = ["INDIVIDUAL"]
-
+            employment_length_list = ["<1", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", ">10"]
             loan_status_list = ["Fully Paid", "In Grace Period", "Charged Off", "Current", "Default", "Late (16-30 days)", "Late (31-120 days)", "Does not meet the credit policy. Status:Fully Paid", "Does not meet the credit policy. Status:Charged Off"]
-
             purpose_list = ["car", "credit_card", "debt_consolidation", "educational", "home_improvement", "house", "major_purchase", "medical", "moving", "other", "renewable_energy", "small_business", "vacation", "wedding"]
 
-            grade_dtype = pd.CategoricalDtype(categories = A_to_G)
-            sub_grade_dtype = pd.CategoricalDtype(categories = sub_grade)
+            grade_dtype = pd.CategoricalDtype(categories = A_to_G, ordered = True)
+            sub_grade_dtype = pd.CategoricalDtype(categories = sub_grade, ordered = True)
             home_ownership_dtype = pd.CategoricalDtype(categories = home_ownership_list)
             verification_dtype = pd.CategoricalDtype(categories = verification_status)
             loan_status_dtype = pd.CategoricalDtype(categories = loan_status_list)
             payment_plan_dtype = pd.CategoricalDtype(categories = payment_plan_list)
             purpose_dtype = pd.CategoricalDtype(categories = purpose_list)
             application_dtype = pd.CategoricalDtype(categories = application_list)
+            employ_length_dtype = pd.CategoricalDtype(categories = employment_length_list, ordered = True)
 
 
             dataframe["grade"] = dataframe["grade"].astype(grade_dtype)
@@ -102,6 +102,7 @@ class DataTransform():
             dataframe["payment_plan"] = dataframe["payment_plan"].astype(payment_plan_dtype)
             dataframe["purpose"] = dataframe["purpose"].astype(purpose_dtype)
             dataframe["application_type"] = dataframe["application_type"].astype(application_dtype)
+            dataframe["employment_length"] = dataframe["employment_length"].astype(employ_length_dtype)
 
             
 
@@ -118,7 +119,7 @@ class DataTransform():
 
         dataframe["term"] = dataframe["term"].str.replace("\D", "", regex = True)
         dataframe["employment_length"] = dataframe["employment_length"].apply(self.clean_employment_length)
-        dataframe["employment_length"] = dataframe["employment_length"].str.replace("\D", "", regex = True)
+        dataframe["employment_length"] = dataframe["employment_length"].str.replace("[^0-9<>]", "", regex = True)
         dataframe["policy_code"] = dataframe["policy_code"].astype(str)
         dataframe["policy_code"] = dataframe["policy_code"].str.replace("1", "Available")
         dataframe["policy_code"] = dataframe["policy_code"].str.replace("0", "Not Available")
@@ -127,9 +128,9 @@ class DataTransform():
 
     def clean_employment_length(self, length):
         if length == "< 1 year":
-            return ("0")
+            return ("<1")
         elif length == "10+ years":
-            return ("11")
+            return (">10")
         else:
             return length
 
@@ -237,62 +238,49 @@ class DataFrameInfo():
         """prints the shape (dimension) of the dataframe given"""
         print("The Dataframe Shape is: " , dataframe.shape)
 
-   
-class DataFrameTransform():
+
+
+class Plotter:
+    def __init__(self):
+        pass
+
+    def plot_nulls_before_after(self, before, after):
+        fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+        plt.tight_layout()
+        plt.subplots_adjust(bottom=0.4)
+        before.plot.bar(ax=ax[0], title="Null Values Before")
+        after.plot.bar(ax=ax[1], title="Null Values After")
+        plt.show()   
+
+
+
+class DataFrameTransform:
     def __init__(self):
         pass
 
     def call_all_transformers(self, dataframe):
-        dataframe = self.drop_nulls(dataframe)
-        dataframe = self.get_data_with_nulls(dataframe)
-        dataframe = self.drop_important_rows(dataframe)
-        show(dataframe)
-        dataframe = dataframe.apply(self.infer_funded_amount, axis="columns")
+        dataframe = self.drop_columns(dataframe)
+        dataframe = self.impute_columns(dataframe)
+
         show(dataframe)
 
-
-    def drop_nulls(self, dataframe):
-        null_percentage_df = dataframe.isnull().sum() / len(dataframe) * 100
-        columns_to_drop = null_percentage_df[null_percentage_df > 50].index.tolist()
-        dataframe = dataframe.drop(columns=columns_to_drop)
     
+    def count_nulls(self, dataframe):
+        return dataframe.isnull().sum()
+
+    def drop_columns(self, dataframe, threshold=0.5):
+        columns_to_drop = [column for column in dataframe.columns if dataframe[column].isnull().mean() > threshold]
+        return dataframe.drop(columns=columns_to_drop, axis=1)
+
+    def impute_columns(self, dataframe):
+        for column in dataframe.columns:
+            if dataframe[column].dtype == 'float64' or dataframe[column].dtype == 'int64':
+                dataframe[column].fillna(dataframe[column].mean(), inplace=True)
+            else:
+                # Assuming non-numerical columns are categorical; using mode for imputation
+                dataframe[column].fillna(dataframe[column].mode()[0], inplace=True)
         return dataframe
     
-
-    def drop_important_rows(self, dataframe):
-        dataframe = dataframe.dropna(subset=["id", "member_id"])
-        return dataframe
-    
-
-    def infer_funded_amount(self, row):
-        # if loan_amount and funded_amount are the same, infer funded_amount_inv
-        if pd.notnull(row["loan_amount"]) and pd.notnull(row["funded_amount"]):
-            if row["loan_amount"] == row["funded_amount"]:
-                row["funded_amount_inv"] = row["loan_amount"]
-
-        # if loan amount and funded_amount_inv are the same, infer funded_amount
-        elif pd.notnull(row["loan_amount"]) and pd.notnull(row["funded_amount_inv"]):
-            if row["loan_amount"] == row["funded_amount_inv"]:
-                row["funded_amount"] = row["loan_amount"]
-        
-        #if both funded_amount/_inv are the same, infer loan_amount
-        elif pd.notnull(row["funded_amount"]) and pd.notnull(row["funded_amount_inv"]):
-            if row["funded_amount"] == row["funded_amount_inv"]:
-                row["loan_amount"] = row["funded_amount"]
-
-    
-
-    def get_data_with_nulls(self, dataframe):
-        data_with_nulls = dataframe[dataframe.isnull().any(axis=1)]
-
-        return data_with_nulls
-
-
-    def get_data_without_nulls(self, dataframe):
-        data_without_nulls = dataframe.dropna()
-
-        return data_without_nulls
-
 
 if __name__ == "__main__":
     # to stop spam of deprecated feature
@@ -312,4 +300,19 @@ if __name__ == "__main__":
     dataframe = dt.call_all_cleaners(dataframe)
     #dataframe = dti.call_all_information(dataframe)
     dtf.call_all_transformers(dataframe)
+
+
+
+    plotter = Plotter()
+
+    nulls_before = dtf.count_nulls(dataframe)
+    dataframe = dtf.drop_columns(dataframe, threshold=0.3)
+
+    # Step 3: Impute Null Values
+    dataframe = dtf.impute_columns(dataframe)
+
+    # Step 4: Check Nulls and Visualize
+    nulls_after = dtf.count_nulls(dataframe)
+    plotter.plot_nulls_before_after(nulls_before, nulls_after)
+
 
