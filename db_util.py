@@ -58,6 +58,7 @@ class DataTransform():
         return(dataframe)
 
     def set_numeric(self, dataframe, numeric_list):
+        """turns all columns listed in numeric_list in the dataframe given to a numeric dtype"""
         for column in numeric_list:
             
             dataframe[column] = pd.to_numeric(dataframe[column], errors = "coerce", downcast = "integer")
@@ -67,6 +68,8 @@ class DataTransform():
         return(dataframe)
     
     def set_qualitative(self, dataframe):
+            """creates new catagorical dtypes of each qualitative column, and sets that column as the new dtype to save space.
+            some dtypes are also ordered"""
 
             A_to_G = ["A", "B", "C", "D", "E", "F", "G"]
 
@@ -127,6 +130,7 @@ class DataTransform():
         return(dataframe)
 
     def clean_employment_length(self, length):
+        """this function is a quick filter to replace the value in employment_length to the correct value, shortening the value and making it ready for categorising"""
         if length == "< 1 year":
             return ("<1")
         elif length == "10+ years":
@@ -199,11 +203,14 @@ class DataFrameInfo():
         mode_df = pd.DataFrame({"Mode": mode_series})
         return mode_df
 
-    def show_null_barchart(self,dataframe):
+    def show_null_barchart(self, dataframe):
+        """shows a barchart of all the columns and their percentage of values that are null"""
         plt.figure(figsize=(10, 6))
-    
-        missing_percentage = dataframe.isnull().mean() * 100  # Calculate the percentage of missing values for each column
-        missing_percentage = missing_percentage[missing_percentage > 0]  # Filter columns with missing values
+
+        # Calculate the percentage of missing values for each column
+        missing_percentage = dataframe.isnull().mean() * 100  
+        # Filter columns with missing values
+        missing_percentage = missing_percentage[missing_percentage > 0]  
 
         missing_percentage.plot(kind="bar")
         plt.xlabel("Columns")
@@ -241,10 +248,14 @@ class DataFrameInfo():
 
 
 class Plotter:
+    
     def __init__(self):
         pass
 
+
+
     def plot_nulls_before_after(self, before, after):
+        """creates two barcharts of the columns in the dataframe, before and after they have been cleaned of all null values. shows them side by side"""
         fig, ax = plt.subplots(1, 2, figsize=(12, 6))
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.4)
@@ -257,27 +268,21 @@ class Plotter:
 class DataFrameTransform:
     def __init__(self):
         pass
-
-    def call_all_transformers(self, dataframe):
-        dataframe = self.drop_columns(dataframe)
-        dataframe = self.impute_columns(dataframe)
-
-        show(dataframe)
-
     
     def count_nulls(self, dataframe):
         return dataframe.isnull().sum()
 
     def drop_columns(self, dataframe, threshold=0.5):
+        """this function drops all columns where the null value percentage is above a given %, default being 50%"""
         columns_to_drop = [column for column in dataframe.columns if dataframe[column].isnull().mean() > threshold]
         return dataframe.drop(columns=columns_to_drop, axis=1)
 
     def impute_columns(self, dataframe):
+        """For quantative data, imputes data into columns by the column mean, for qualitative, imputes by the most frequent"""
         for column in dataframe.columns:
             if dataframe[column].dtype == 'float64' or dataframe[column].dtype == 'int64':
                 dataframe[column].fillna(dataframe[column].mean(), inplace=True)
             else:
-                # Assuming non-numerical columns are categorical; using mode for imputation
                 dataframe[column].fillna(dataframe[column].mode()[0], inplace=True)
         return dataframe
     
@@ -292,27 +297,24 @@ if __name__ == "__main__":
     dataframe = load_csv_to_pd("loan_payments.csv")
 
     #creates all the classes
-    dt = DataTransform()
-    dti = DataFrameInfo()
-    dtf = DataFrameTransform()
-
-    #calls the main function in each data analysis class
-    dataframe = dt.call_all_cleaners(dataframe)
-    #dataframe = dti.call_all_information(dataframe)
-    dtf.call_all_transformers(dataframe)
-
-
-
+    dtransformer = DataTransform()
+    dtinfo = DataFrameInfo()
+    dftransformer = DataFrameTransform()
     plotter = Plotter()
 
-    nulls_before = dtf.count_nulls(dataframe)
-    dataframe = dtf.drop_columns(dataframe, threshold=0.3)
 
-    # Step 3: Impute Null Values
-    dataframe = dtf.impute_columns(dataframe)
+    #calls the main function in each data analysis class
+    dataframe = dtransformer.call_all_cleaners(dataframe)
+    dataframe = dtinfo.call_all_information(dataframe)
 
-    # Step 4: Check Nulls and Visualize
-    nulls_after = dtf.count_nulls(dataframe)
+    #calls the plotter and visualises the null value removal
+    nulls_before = dftransformer.count_nulls(dataframe)
+
+    dataframe = dftransformer.drop_columns(dataframe)
+    dataframe = dftransformer.impute_columns(dataframe)
+
+    nulls_after = dftransformer.count_nulls(dataframe)
+
     plotter.plot_nulls_before_after(nulls_before, nulls_after)
 
 
