@@ -1,9 +1,7 @@
 import pandas as pd
+from pandasgui import show
 
 class DataTransform():
-    def __init__(self):
-        pass
-
     def call_all_cleaners(self, dataframe):
         """puts all the dataframe cleaning function into one callable function"""
         numeric_list = ["id", "member_id", "loan_amount", "funded_amount", "funded_amount_inv", "term",  "int_rate", "instalment", "employment_length", "annual_inc", "dti", "delinq_2yrs", "inq_last_6mths", "mths_since_last_delinq",  "open_accounts", "total_accounts", "out_prncp", "out_prncp_inv", "total_payment", "total_payment_inv", "total_rec_prncp", "total_rec_int", "total_rec_late_fee", "recoveries", "collection_recovery_fee", "last_payment_amount", "collections_12_mths_ex_med", "mths_since_last_major_derog"]
@@ -15,10 +13,8 @@ class DataTransform():
         dataframe = self.set_numeric(dataframe, numeric_list)
         dataframe = self.set_qualitative(dataframe)
         dataframe = dataframe.rename(columns = {"Unnamed: 0": "Index"})
-        dataframe = dataframe.set_index("Index")
 
         #print(dataframe.info())
-
         return(dataframe)
 
     def set_numeric(self, dataframe, numeric_list):
