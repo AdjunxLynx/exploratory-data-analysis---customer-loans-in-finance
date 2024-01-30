@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine, text
 import pandas as pd
 import yaml
-import sys
 
 class RDSDatabaseConnector():
     def load_credentials():

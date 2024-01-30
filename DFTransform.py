@@ -1,5 +1,3 @@
-
-
 class DataFrameTransform:
     def count_nulls(self, dataframe):
         return dataframe.isnull().sum()
