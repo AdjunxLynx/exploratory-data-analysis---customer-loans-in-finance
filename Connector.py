@@ -14,13 +14,10 @@ class RDSDatabaseConnector():
         except:
             raise Exception("Incorrect file location provided for credentials, You can set location in the constructor for the class")
 
-
-            
-
-    def database_to_pandas_dataframe(self):
+    def database_to_pandas_dataframe(self, table_name = "loan_payments"):
         """uses SQLAlchemy engine to connect to online database, download all data in the table and to return as a pandas dataframe"""
         with self.engine.connect() as conn:
-            database = conn.execute(text("SELECT * FROM loan_payments"))
+            database = conn.execute(text(f"SELECT * FROM {table_name}"))
             dataframe = pd.DataFrame(data = database)
             return dataframe
         
@@ -30,6 +27,3 @@ class RDSDatabaseConnector():
         dataframe = self.database_to_pandas_dataframe()
         dataframe.to_csv(filename)
         return dataframe
-        
-
-
