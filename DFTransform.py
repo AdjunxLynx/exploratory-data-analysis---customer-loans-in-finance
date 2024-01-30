@@ -1,5 +1,6 @@
 class DataFrameTransform:
     def count_nulls(self, dataframe):
+        """returns the total amount of nulls in a dataframe"""
         return dataframe.isnull().sum()
 
     def drop_columns(self, dataframe, threshold=0.5):

@@ -3,10 +3,6 @@ import pandas as pd
 import yaml
 
 class RDSDatabaseConnector():
-    def load_credentials():
-        """loads credentials from a file called 'credentials.yaml' and returns it as a dictionary"""
-        
-    
     def __init__(self, credentials_location = "credentials.yaml"):
         try:
             with open(credentials_location, "r") as file:
@@ -29,6 +25,8 @@ class RDSDatabaseConnector():
             return dataframe
         
     def download_df(self, filename = "loan_payments.csv"):
+        """This function downloads a database using the premade engine, and converts to a .csv file in the local directory.
+        Then Returns the variable for later use"""
         dataframe = self.database_to_pandas_dataframe()
         dataframe.to_csv(filename)
         return dataframe
