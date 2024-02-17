@@ -28,6 +28,8 @@ if __name__ == "__main__":
     dtransformer.set_available_list(["policy_code"])
     dtransformer.set_string_list(["policy_code", "term"])
     dtransformer.set_strip_list(["term"])
+    dtransformer.set_qualitative_list(["purpose", "grade", "sub_grade","home_ownership", "verification_status", "loan_status", "payment_plan", "application_type", "employment_length"])
+
     
     dataframe = dtransformer.call_all_cleaners(dataframe)
     dataframe = dtinfo.call_all_information(dataframe)
@@ -39,4 +41,7 @@ if __name__ == "__main__":
     nulls_after = dftransformer.count_nulls(dataframe)
 
     plotter.plot_nulls_before_after(nulls_before, nulls_after)
+    
+    skewed_dataframe = dtransformer.get_skewed_columns(dataframe)
+    plotter.plot_skewed_graph(skewed_dataframe)
     show(dataframe)

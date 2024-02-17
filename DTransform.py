@@ -6,6 +6,7 @@ class DataTransform():
         self.available_list = []
         self.string_list = []
         self.strip_list = []
+        self.qualitative_list = []
     
     def call_all_cleaners(self, dataframe):
         """puts all the dataframe cleaning function into one callable function"""
@@ -16,10 +17,17 @@ class DataTransform():
         dataframe = self.set_column_to_date(dataframe, date_list)
 
         dataframe = self.set_numeric(dataframe, numeric_list)
-        dataframe = self.set_qualitative(dataframe)
+        dataframe = self.set_qualitative(dataframe,self.qualitative_list)
         dataframe = dataframe.rename(columns = {"Unnamed: 0": "Index"})
 
         return(dataframe)
+    
+    def get_skewed_columns(self, dataframe, threshold = 0.5):
+        """inputs the current dataframe and returns all the columns where the columns are skewed by plus or minus 0.5(moderately skewed), considering only numeric columns"""
+        numeric_cols = dataframe.select_dtypes(include=['number'])
+        skewed_columns = numeric_cols.skew().where(lambda x: abs(x) > threshold).dropna()
+        return skewed_columns
+        
     
     def get_numeric_list(self, dataframe):
         """returns a list of the column names that are numeric"""
@@ -52,6 +60,7 @@ class DataTransform():
         dataframe = self.set_column_to_string(dataframe, self.string_list)
         dataframe = self.set_column_to_available_or_not(dataframe, self.available_list)
         dataframe = self.strip_column_to_int(dataframe, self.strip_list)
+        dataframe = self.set_qualitative(dataframe, self.qualitative_list)
 
         return(dataframe)
     
@@ -62,49 +71,17 @@ class DataTransform():
         return dataframe
              
     
-    def set_qualitative(self, dataframe):
+    def set_qualitative(self, dataframe, categorical_list):
         """creates new catagorical dtypes of each qualitative column, and sets that column as the new dtype to save space.
         some dtypes are also ordered"""
-
-        A_to_G = ["A", "B", "C", "D", "E", "F", "G"]
-
-        sub_grade = [] 
-        for letter in A_to_G:
-            for number in range(1,6):
-                sub_grade.append((letter + str(number)))
-
-        home_ownership_list = ["OWN", "RENT", "MORTGAGE", "OTHER", "NOT GIVEN"]
-        verification_status = ["Verified", "Source Verified", "Not Verified"]
-        payment_plan_list = ["y", "n"]
-        application_list = ["INDIVIDUAL"]
-        employment_length_list = ["<1", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", ">10"]
-        loan_status_list = ["Fully Paid", "In Grace Period", "Charged Off", "Current", "Default", "Late (16-30 days)", "Late (31-120 days)", "Does not meet the credit policy. Status:Fully Paid", "Does not meet the credit policy. Status:Charged Off"]
-        purpose_list = ["car", "credit_card", "debt_consolidation", "educational", "home_improvement", "house", "major_purchase", "medical", "moving", "other", "renewable_energy", "small_business", "vacation", "wedding"]
-
-        grade_dtype = pd.CategoricalDtype(categories = A_to_G, ordered = True)
-        sub_grade_dtype = pd.CategoricalDtype(categories = sub_grade, ordered = True)
-        home_ownership_dtype = pd.CategoricalDtype(categories = home_ownership_list)
-        verification_dtype = pd.CategoricalDtype(categories = verification_status)
-        loan_status_dtype = pd.CategoricalDtype(categories = loan_status_list)
-        payment_plan_dtype = pd.CategoricalDtype(categories = payment_plan_list)
-        purpose_dtype = pd.CategoricalDtype(categories = purpose_list)
-        application_dtype = pd.CategoricalDtype(categories = application_list)
-        employ_length_dtype = pd.CategoricalDtype(categories = employment_length_list, ordered = True)
-
-
-        dataframe["grade"] = dataframe["grade"].astype(grade_dtype)
-        dataframe["sub_grade"] = dataframe["sub_grade"].astype(sub_grade_dtype)
-        dataframe["home_ownership"] = dataframe["home_ownership"].astype(home_ownership_dtype)
-        dataframe["verification_status"] = dataframe["verification_status"].astype(verification_dtype)
-        dataframe["loan_status"] = dataframe["loan_status"].astype(loan_status_dtype)
-        dataframe["payment_plan"] = dataframe["payment_plan"].astype(payment_plan_dtype)
-        dataframe["purpose"] = dataframe["purpose"].astype(purpose_dtype)
-        dataframe["application_type"] = dataframe["application_type"].astype(application_dtype)
-        dataframe["employment_length"] = dataframe["employment_length"].astype(employ_length_dtype)
-
-        
-
+        for column in categorical_list:
+            dataframe[column] = pd.Categorical(dataframe[column]).codes
+            
         return(dataframe)
+    
+    def set_qualitative_list(self, list):
+        self.qualitative_list = list
+    
     
     def set_column_to_string(self, dataframe, columns):
         """sets all the columns thats match the given columns list to string"""
