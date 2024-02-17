@@ -23,13 +23,16 @@ if __name__ == "__main__":
     
     dataframe = rdsdbc.download_df()
     show(dataframe)
+    available_list = ["policy_code"]
+    string_list = ["policy_code", "term"]
+    strip_list = ["term"]
+    qualitative_list = ["purpose", "grade", "sub_grade","home_ownership", "verification_status", "loan_status", "payment_plan", "application_type", "employment_length"]
     
     #calls the main function in each data analysis class
-    dtransformer.set_available_list(["policy_code"])
-    dtransformer.set_string_list(["policy_code", "term"])
-    dtransformer.set_strip_list(["term"])
-    dtransformer.set_qualitative_list(["purpose", "grade", "sub_grade","home_ownership", "verification_status", "loan_status", "payment_plan", "application_type", "employment_length"])
-
+    dtransformer.set_available_list(available_list)
+    dtransformer.set_string_list(string_list)
+    dtransformer.set_strip_list(strip_list)
+    dtransformer.set_qualitative_list(qualitative_list)
     
     dataframe = dtransformer.call_all_cleaners(dataframe)
     dataframe = dtinfo.call_all_information(dataframe)
@@ -42,6 +45,6 @@ if __name__ == "__main__":
 
     plotter.plot_nulls_before_after(nulls_before, nulls_after)
     
-    skewed_dataframe = dtransformer.get_skewed_columns(dataframe)
+    skewed_dataframe = dtransformer.get_skewed_columns(dataframe, qualitative_list)
     plotter.plot_skewed_graph(skewed_dataframe)
     show(dataframe)

@@ -21,11 +21,19 @@ class DataTransform():
         dataframe = dataframe.rename(columns = {"Unnamed: 0": "Index"})
 
         return(dataframe)
+    def drop_columns_in_series(self, series, columns):
+        for column in columns:
+            try:
+                series = series.drop(column)
+            except:
+                print(f"Error Dropping {column}, Moving On")
+        return series
     
-    def get_skewed_columns(self, dataframe, threshold = 0.5):
+    def get_skewed_columns(self, dataframe, qualitative_list, threshold = 0.5):
         """inputs the current dataframe and returns all the columns where the columns are skewed by plus or minus 0.5(moderately skewed), considering only numeric columns"""
         numeric_cols = dataframe.select_dtypes(include=['number'])
         skewed_columns = numeric_cols.skew().where(lambda x: abs(x) > threshold).dropna()
+        skewed_columns = self.drop_columns_in_series(skewed_columns, qualitative_list)
         return skewed_columns
         
     
