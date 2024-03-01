@@ -21,6 +21,7 @@ class DataTransform():
         dataframe = dataframe.rename(columns = {"Unnamed: 0": "Index"})
 
         return(dataframe)
+    
     def drop_columns_in_series(self, series, columns):
         for column in columns:
             try:
@@ -29,12 +30,17 @@ class DataTransform():
                 print(f"Error Dropping {column}, Moving On")
         return series
     
-    def get_skewed_columns(self, dataframe, qualitative_list, threshold = 0.5):
-        """inputs the current dataframe and returns all the columns where the columns are skewed by plus or minus 0.5(moderately skewed), considering only numeric columns"""
+    def get_skewed_columns(self, dataframe, qualitative_list, threshold=0.5):
+        """Inputs the current dataframe and returns all the columns where the columns are skewed by more than 0.5 (moderately skewed), considering only numeric columns."""
         numeric_cols = dataframe.select_dtypes(include=['number'])
         skewed_columns = numeric_cols.skew().where(lambda x: abs(x) > threshold).dropna()
-        skewed_columns = self.drop_columns_in_series(skewed_columns, qualitative_list)
+        skewed_columns = skewed_columns.drop(labels=qualitative_list, errors='ignore')
+        skewed_columns = skewed_columns.index.tolist()
         return skewed_columns
+    
+    def get_skewed_dataframe(self, dataframe, skewed_columns):
+        skewed_dataframe = dataframe[skewed_columns]
+        return skewed_dataframe
         
     
     def get_numeric_list(self, dataframe):
@@ -75,7 +81,7 @@ class DataTransform():
     def strip_column_to_int(self, dataframe, columns):
         """sets all the columns thats match the given columns list, and strips of all characters except integers"""
         for column in columns:
-            dataframe[column] = dataframe[column].str.replace("\D", "", regex=True)
+            dataframe[column] = dataframe[column].str.replace(r"\D", "", regex=True)
         return dataframe
              
     
@@ -95,8 +101,8 @@ class DataTransform():
         """sets all the columns thats match the given columns list to string"""
         for column in columns:
             dataframe[column] = dataframe[column].astype(str)
-            dataframe[column] = dataframe[column].str.replace("\D", "", regex = True)
-
+            dataframe[column] = dataframe[column].str.replace(r"\D", "", regex=True)
+            
         return dataframe
     
     def set_column_to_available_or_not(self, dataframe, columns):
