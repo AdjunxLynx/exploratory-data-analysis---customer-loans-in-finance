@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import boxcox, yeojohnson
 import json
+import os
 
 class DataFrameTransform:
     def count_nulls(self, dataframe):
@@ -99,7 +100,7 @@ class DataFrameTransform:
         transformation_method = self.transform_header(columns, transformation_list, lambda_list)
         unskewed_dataframe.columns = columns
         
-        with open("transformation_details.json", "w") as json_file:
+        with open(os.path.join("script_data", "transformation_details.json"), "w") as json_file:
             json.dump(transformation_details, json_file, indent=4)
 
 

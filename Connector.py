@@ -1,9 +1,10 @@
 from sqlalchemy import create_engine, text
 import pandas as pd
 import yaml
+import os
 
 class RDSDatabaseConnector():
-    def __init__(self, credentials_location = "credentials.yaml"):
+    def __init__(self, credentials_location = os.path.join("script_data", "credentials.yaml")):
         try:
             with open(credentials_location, "r") as file:
                 credentials = yaml.safe_load(file)
@@ -21,7 +22,7 @@ class RDSDatabaseConnector():
             dataframe = pd.DataFrame(data = database)
             return dataframe
         
-    def download_df(self, filename = "loan_payments.csv"):
+    def download_df(self, filename = os.path.join("script_data", "loan_payments.csv")):
         """This function downloads a database using the premade engine, and converts to a .csv file in the local directory.
         Then Returns the variable for later use"""
         dataframe = self.database_to_pandas_dataframe()
