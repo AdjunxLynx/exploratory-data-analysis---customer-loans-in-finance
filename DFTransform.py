@@ -38,7 +38,7 @@ class DataFrameTransform:
         unskewed_dataframe = pd.DataFrame()
         columns = dataframe.select_dtypes(include=['number']).columns
         columns = self.drop_columns_in_series(columns, qualitative_list)
-        
+
         transformation_list = []
         lambda_list = []
         
