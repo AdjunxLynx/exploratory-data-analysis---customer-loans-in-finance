@@ -1,0 +1,102 @@
+{
+    "id": [
+        "yeo",
+        0.11527772585677401
+    ],
+    "member_id": [
+        "yeo",
+        0.1281910234259341
+    ],
+    "loan_amount": [
+        "yeo",
+        0.36018407758215804
+    ],
+    "funded_amount": [
+        "yeo",
+        0.343008072571504
+    ],
+    "funded_amount_inv": [
+        "yeo",
+        0.4443093579927676
+    ],
+    "term": [
+        "boxcox",
+        -7.147442503597634
+    ],
+    "int_rate": [
+        "yeo",
+        0.46672166356086275
+    ],
+    "instalment": [
+        "yeo",
+        0.33720901196059855
+    ],
+    "annual_inc": [
+        "boxcox",
+        -0.05955514318015783
+    ],
+    "dti": [
+        "yeo",
+        0.7633980302770061
+    ],
+    "delinq_2yrs": [
+        "yeo",
+        -7.064260318124473
+    ],
+    "inq_last_6mths": [
+        "cbrt",
+        -0.867890657258199
+    ],
+    "open_accounts": [
+        "yeo",
+        0.21272739233680013
+    ],
+    "total_accounts": [
+        "boxcox",
+        0.38010221939425803
+    ],
+    "out_prncp": [
+        "yeo",
+        -0.18817899388260884
+    ],
+    "out_prncp_inv": [
+        "yeo",
+        -0.1882032925145105
+    ],
+    "total_payment": [
+        "yeo",
+        0.31836554773010833
+    ],
+    "total_payment_inv": [
+        "yeo",
+        0.3814728561069627
+    ],
+    "total_rec_prncp": [
+        "yeo",
+        0.3346540513705855
+    ],
+    "total_rec_int": [
+        "yeo",
+        0.19176151411024953
+    ],
+    "total_rec_late_fee": [
+        "yeo",
+        -9.62945366193796
+    ],
+    "recoveries": [
+        "yeo",
+        -2.3514031826534634
+    ],
+    "collection_recovery_fee": [
+        "yeo",
+        -4.810301115752466
+    ],
+    "last_payment_amount": [
+        "yeo",
+        -0.022230522753612238
+    ],
+    "collections_12_mths_ex_med": [
+        "yeo",
+        -76.50023092486386
+    ]
+}

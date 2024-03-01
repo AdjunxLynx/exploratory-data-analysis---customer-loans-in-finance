@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.stats import boxcox, yeojohnson
+import json
 
 class DataFrameTransform:
     def count_nulls(self, dataframe):
@@ -36,6 +37,8 @@ class DataFrameTransform:
     
     def remove_skewness(self, dataframe, qualitative_list):
         unskewed_dataframe = pd.DataFrame()
+        transformation_details = {}
+        
         columns = dataframe.select_dtypes(include=['number']).columns
         columns = self.drop_columns_in_series(columns, qualitative_list)
 
@@ -90,13 +93,38 @@ class DataFrameTransform:
             unskewed_dataframe = pd.concat([unskewed_dataframe, temp], axis = 1)
             lambda_list.append(fitted_lambda)
             transformation_list.append(transformation_method)
-        print("Done Transformations")
-        columns = self.transform_header(columns, transformation_list, lambda_list)
-        unskewed_dataframe.columns = columns
-        return unskewed_dataframe
-        
-                    
+            transformation_details[column] = [transformation_method, fitted_lambda]
 
-                    
-                    
-            
+        print("Done Transformations")
+        transformation_method = self.transform_header(columns, transformation_list, lambda_list)
+        unskewed_dataframe.columns = columns
+        
+        with open("transformation_details.json", "w") as json_file:
+            json.dump(transformation_details, json_file, indent=4)
+
+
+        return unskewed_dataframe
+    
+    def merge_dataframes(self, full_df, transformed_df):
+        """
+        Merges two DataFrames, prioritizing data from transformed_df for overlapping columns.
+        The resulting DataFrame retains the column order from full_df.
+        
+        Parameters:
+        - full_df: DataFrame containing all relevant columns.
+        - transformed_df: DataFrame containing transformed subset of columns.
+        
+        Returns:
+        - DataFrame with merged data, prioritizing transformed_df where applicable.
+        """
+        # Ensure the index aligns for proper updating
+        full_df = full_df.copy()
+        transformed_df = transformed_df.set_index(full_df.index)
+
+        # Update the full DataFrame with the transformed data
+        for column in transformed_df.columns:
+            if column in full_df.columns:
+                full_df[column] = transformed_df[column]
+        
+        # Return the full DataFrame with updated data
+        return full_df
