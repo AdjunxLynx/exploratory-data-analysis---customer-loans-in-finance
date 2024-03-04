@@ -107,17 +107,8 @@ class DataFrameTransform:
         return unskewed_dataframe
     
     def merge_dataframes(self, full_df, transformed_df):
-        """
-        Merges two DataFrames, prioritizing data from transformed_df for overlapping columns.
-        The resulting DataFrame retains the column order from full_df.
-        
-        Parameters:
-        - full_df: DataFrame containing all relevant columns.
-        - transformed_df: DataFrame containing transformed subset of columns.
-        
-        Returns:
-        - DataFrame with merged data, prioritizing transformed_df where applicable.
-        """
+        """Merges two DataFrames, prioritizing data from transformed_df for overlapping columns.
+        The resulting DataFrame retains the column order from full_df"""
         # Ensure the index aligns for proper updating
         full_df = full_df.copy()
         transformed_df = transformed_df.set_index(full_df.index)
@@ -129,3 +120,16 @@ class DataFrameTransform:
         
         # Return the full DataFrame with updated data
         return full_df
+    
+    def drop_outside_bounds(self, dataframe, bounds_dict):
+        """Drops rows where column values are outside the specified bounds"""
+        
+        # {column_name} : {a,b}  to include a to b and remove everything else
+
+        
+        for column, bounds in bounds_dict.items():
+            lower_bound, upper_bound = bounds
+            # Drop rows where column value is below the lower bound or above the upper bound
+            dataframe = dataframe[(dataframe[column] >= lower_bound) & 
+                                            (dataframe[column] <= upper_bound)]
+        return dataframe
