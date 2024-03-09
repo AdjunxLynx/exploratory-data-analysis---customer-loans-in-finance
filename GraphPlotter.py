@@ -28,6 +28,14 @@ class Plotter:
         plt.show()
         plt.close(fig)
         
+    def plot(self, graph):
+        fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+        plt.tight_layout()
+        plt.subplots_adjust(bottom=0.4)
+        graph.plot.bar(ax=ax[1], title="Outlier Values After")
+        plt.show()
+        plt.close(fig)
+        
     def plot_outliers_before_after(self, before, after):
         """creates two barcharts of the columns in the dataframe, before and after they have been cleaned of all outlier values. shows them side by side"""
         
@@ -40,10 +48,15 @@ class Plotter:
         plt.show()
         plt.close(fig)
         
-    def visualise_outliers(self, dataframe):
+    def visualise_outliers(self, dataframe, outlier_columns):
+                #columns where I deemed the outliers to be irrelevent to analysing and viewing the dataset as a whole
         for column in dataframe.columns:
-            plt.figure()  # This ensures a new figure for each plot
-            sns.boxplot(data=dataframe[column])
-            plt.title(f"Box Plot of {column}")
-            plt.show()
+            if column in outlier_columns:
+                plt.figure()  # new figure for each plot
+                sns.boxplot(data=dataframe[column])
+                plt.title(f"Box Plot of {column}")
+                plt.show()
+            else:
+                pass
+                
         

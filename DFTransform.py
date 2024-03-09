@@ -121,6 +121,47 @@ class DataFrameTransform:
         # Return the full DataFrame with updated data
         return full_df
     
+    def find_closest_outliers(self, dataframe, outlier_columns):
+        outlier_bounds = {}
+        
+        for column in dataframe.select_dtypes(include=['number']).columns:
+            if column in outlier_columns:
+                Q1 = dataframe[column].quantile(0.25)
+                Q3 = dataframe[column].quantile(0.75)
+                IQR = Q3 - Q1
+                
+                # Define bounds for outliers
+                lower_bound = Q1 - 1.5 * IQR
+                upper_bound = Q3 + 1.5 * IQR
+                
+                # Find outliers
+                outliers = dataframe[(dataframe[column] < lower_bound) | (dataframe[column] > upper_bound)][column]
+                
+                # Find the closest outlier to the max/min within the outlier range if outliers exist
+                if not outliers.empty:
+                    min_outlier = outliers[outliers > lower_bound].min()  # Closest to lower bound
+                    max_outlier = outliers[outliers < upper_bound].max()  # Closest to upper bound
+                    outlier_bounds[column] = [min_outlier, max_outlier]
+            
+        return outlier_bounds
+
+
+    def calculate_outlier_counts(self, dataframe, outlier_columns):
+        """Calculates the count of outliers in each column of the dataframe."""
+        outlier_counts = {}
+        for column in dataframe.select_dtypes(include=['number']).columns:
+            if column in outlier_columns:
+                Q1 = dataframe[column].quantile(0.25)
+                Q3 = dataframe[column].quantile(0.75)
+                IQR = Q3 - Q1
+                lower_bound = Q1 - 1.5 * IQR
+                upper_bound = Q3 + 1.5 * IQR
+                
+                # Count outliers
+                outlier_counts[column] = ((dataframe[column] < lower_bound) | (dataframe[column] > upper_bound)).sum()
+        return outlier_counts
+    
+    
     def drop_outside_bounds(self, dataframe, bounds_dict):
         """Drops rows where column values are outside the specified bounds"""
         
