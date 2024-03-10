@@ -81,3 +81,7 @@ python3 db_util.py
 ```
 
 This project is structured to provide a comprehensive toolkit for data analysis and visualization tasks, embodying best practices in code organization and documentation.
+
+## License
+
+This github repo is licensed under MIT.
