@@ -121,29 +121,23 @@ class DataFrameTransform:
         # Return the full DataFrame with updated data
         return full_df
     
-    def find_closest_outliers(self, dataframe, outlier_columns):
-        outlier_bounds = {}
-        
-        for column in dataframe.select_dtypes(include=['number']).columns:
+    def find_closest_outliers(self,dataframe, outlier_columns):
+        bounds = {}
+        # Select only numerical columns for outlier bounds calculation
+        numeric_cols = dataframe.select_dtypes(include=['number']).columns
+
+        for column in numeric_cols:
             if column in outlier_columns:
                 Q1 = dataframe[column].quantile(0.25)
                 Q3 = dataframe[column].quantile(0.75)
                 IQR = Q3 - Q1
-                
-                # Define bounds for outliers
                 lower_bound = Q1 - 1.5 * IQR
                 upper_bound = Q3 + 1.5 * IQR
-                
-                # Find outliers
-                outliers = dataframe[(dataframe[column] < lower_bound) | (dataframe[column] > upper_bound)][column]
-                
-                # Find the closest outlier to the max/min within the outlier range if outliers exist
-                if not outliers.empty:
-                    min_outlier = outliers[outliers > lower_bound].min()  # Closest to lower bound
-                    max_outlier = outliers[outliers < upper_bound].max()  # Closest to upper bound
-                    outlier_bounds[column] = [min_outlier, max_outlier]
-            
-        return outlier_bounds
+                bounds[column] = [lower_bound, upper_bound]
+        print(bounds)
+        return bounds
+
+
 
 
     def calculate_outlier_counts(self, dataframe, outlier_columns):
@@ -165,12 +159,39 @@ class DataFrameTransform:
     def drop_outside_bounds(self, dataframe, bounds_dict):
         """Drops rows where column values are outside the specified bounds"""
         
-        # {column_name} : {a,b}  to include a to b and remove everything else
-
-        
         for column, bounds in bounds_dict.items():
             lower_bound, upper_bound = bounds
             # Drop rows where column value is below the lower bound or above the upper bound
             dataframe = dataframe[(dataframe[column] >= lower_bound) & 
                                             (dataframe[column] <= upper_bound)]
+        return dataframe
+    
+    def get_correlation_matrix(self, dataframe):
+        numeric_df = dataframe.select_dtypes(include=['number'])
+        matrix = numeric_df.corr().abs()
+        matrix = matrix.dropna(axis = 0, how = "all")
+        matrix = matrix.dropna(axis = 1, how = "all")
+        return matrix
+    
+    def drop_overcorrelated(self, dataframe, matrix, threshold=0.7, repeats = 2):
+        # Compute the absolute correlation matrix from the dataframe directly
+        
+        abs_matrix = matrix.abs()
+        # columns to drop
+        drop_list = []
+        # if columns has already been considered for dropping
+        considered = set()
+
+        # Iterate over the columns of the correlation matrix
+        for i, column in enumerate(abs_matrix.columns):
+            if column not in considered:
+                for j, other_column in enumerate(abs_matrix.columns[i + 1:], i + 1):
+                    if abs_matrix.iloc[i, j] > threshold and other_column not in considered:
+                        drop_list.append(other_column)
+                        considered.add(other_column)
+                        break 
+
+        # Drop the identified columns from the original DataFrame, and any null columns
+        dataframe = dataframe.drop(columns=drop_list)
+            
         return dataframe

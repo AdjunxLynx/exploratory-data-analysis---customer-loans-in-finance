@@ -22,17 +22,9 @@ class Plotter:
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.4)
         print("Setting up plots")
-        skewed_dataframe.plot.bar(ax=ax[0], title="Skewed Values Before")
-        unskewed_dataframe.plot.bar(ax=ax[1], title="Unskewed Values After")
+        skewed_dataframe.plot.bar(ax=ax[0], title="Skewness Before")
+        unskewed_dataframe.plot.bar(ax=ax[1], title="Skewness After")
         print("Showing plots")
-        plt.show()
-        plt.close(fig)
-        
-    def plot(self, graph):
-        fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-        plt.tight_layout()
-        plt.subplots_adjust(bottom=0.4)
-        graph.plot.bar(ax=ax[1], title="Outlier Values After")
         plt.show()
         plt.close(fig)
         
@@ -43,20 +35,37 @@ class Plotter:
         fig, ax = plt.subplots(1, 2, figsize=(12, 6))
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.4)
-        before.plot.bar(ax=ax[0], title="Outlier Values Before")
-        after.plot.bar(ax=ax[1], title="Outlier Values After")
+        before.plot.bar(ax=ax[0], title="Amount of outliers before")
+        after.plot.bar(ax=ax[1], title="Amount of outliers after")
         plt.show()
         plt.close(fig)
         
-    def visualise_outliers(self, dataframe, outlier_columns):
+    def visualise_outliers(self, dataframe, outlier_columns, show = True):
                 #columns where I deemed the outliers to be irrelevent to analysing and viewing the dataset as a whole
         for column in dataframe.columns:
             if column in outlier_columns:
-                plt.figure()  # new figure for each plot
-                sns.boxplot(data=dataframe[column])
-                plt.title(f"Box Plot of {column}")
-                plt.show()
-            else:
-                pass
+                if show:
+                    plt.figure()  # new figure for each plot
+                    sns.boxplot(data=dataframe[column])
+                    plt.title(f"Box Plot of {column}")
+                    plt.show()
+                    plt.close()
+            
+    def plot_correlation(self, matrix):
+        plt.figure(figsize=(12, 8))
+        plt.title(f"HeatMap for correlation")
+        sns.heatmap(matrix, annot=True, fmt=".2f", cmap='coolwarm', annot_kws={"size": 7})
+        plt.show()
+        plt.close()
                 
-        
+    def plot_correlation_before_after(self, before_matrix, after_matrix):
+        # Create a figure with 2 subplots side by side
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(30, 8))
+
+        sns.heatmap(before_matrix, ax=ax1, cmap="coolwarm", annot=True)
+        ax1.set_title('Correlation heatmap for Before')
+        sns.heatmap(after_matrix, ax=ax2, cmap="coolwarm", annot=True)
+        ax2.set_title('Correlation heatmap for After')
+
+        plt.show()
+        plt.close(fig)
