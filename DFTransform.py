@@ -1,6 +1,7 @@
+from scipy.stats import boxcox, yeojohnson
+
 import numpy as np
 import pandas as pd
-from scipy.stats import boxcox, yeojohnson
 import json
 import os
 

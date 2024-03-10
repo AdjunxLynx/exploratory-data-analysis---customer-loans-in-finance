@@ -1,15 +1,14 @@
-# modules
-import warnings, os
-import pandas as pd
-import seaborn as sns
-from pandasgui import show
-
 # Custom classes
 from DFInfo import DataFrameInfo
 from Connector import RDSDatabaseConnector
 from GraphPlotter import Plotter
 from DFTransform import DataFrameTransform
 from DTransform import DataTransform
+
+# modules
+import warnings, os
+import pandas as pd
+
 
 if __name__ =="__main__":
 
