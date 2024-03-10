@@ -1,6 +1,6 @@
 # Loan Data Analysis and Visualisation Toolkit
 
-This toolkit provides a comprehensive solution for analysing and visualising loan payment data. It is designed to streamline the process of data cleaning, transformation, and visualisation for loan payment datasets.
+This project comprises a suite of Python scripts and a Jupyter Notebook designed to streamline data analysis and visualization processes. The collection includes tools for data connection, transformation, in-depth analysis, and sophisticated graph plotting.
 
 ## Features
 
@@ -9,18 +9,19 @@ This toolkit provides a comprehensive solution for analysing and visualising loa
 - **Null Value Analysis**: Tools for identifying and handling null values in the dataset.
 - **Categorical Data Handling**: Specialised methods for managing categorical data types.
 - **Data Visualisation**: Integrated plotting tools for visualising data cleaning results.
+- **Outlier Removal**: Methods for removing any outliers that may make analysis harder to visualise
 
 ## Classes and Methods
 
 1. **RDSDatabaseConnector**: Connects to an online database and downloads data as a pandas DataFrame.
 2. **DataTransform**: Performs various data transformation tasks like setting data types, cleaning columns, and renaming.
-3. **DataFrameInfo**: Provides descriptive statistics and visualisations for the DataFrame.
-4. **Plotter**: Visualises the changes in null values before and after data cleaning.
-5. **DataFrameTransform**: Contains methods for counting nulls, dropping columns, and imputing missing values.
+3. **DataFrameInfo**: Provides descriptive statistics and information for the DataFrame.
+4. **Plotter**: Visualises the changes that occur for each transformation method.
+5. **DataFrameTransform**: Contains methods for counting nulls, dropping columns, remove skewness, find outliers and imputing missing values.
 
 ## Usage
 
-1. **Database Connection and Data Retrieval**: Use `RDSDatabaseConnector` with your database credentials to download data.
+1. **Database Connection and Data Retrieval**: Use `RDSDatabaseConnector` with the database credentials to download data.
 2. **Data Cleaning and Transformation**: Apply `DataTransform` and `DataFrameTransform` methods to clean and prepare your data.
 3. **Data Analysis**: Use `DataFrameInfo` to get insights into your data.
 4. **Visualisation**: Utilise `Plotter` to visualise the impact of your data cleaning process.
@@ -43,27 +44,40 @@ You will need a few variables, called:
 4. ```RDS_DATABASE``` with the desired database you wish to connect to.
 5. ```RDS_PORT``` with the correct port number to use to connect to.
 
-## Example
 
-```python
-# Connect to the database and load data
-rdsdbc = RDSDatabaseConnector(load_credentials())
-dataframe = rdsdbc.database_to_pandas_dataframe()
 
-# Perform data transformations
-dtransformer = DataTransform()
-dataframe = dtransformer.call_all_cleaners(dataframe)
+## Components Overview
 
-# Analyse and visualise data
-dfinfo = DataFrameInfo()
-dfinfo.call_all_information(dataframe)
+### `Connector.py`
+A foundational script responsible for establishing connections, facilitating seamless data retrieval and database interactions.
 
-# Plot null values before and after cleaning
-dftransformer = DataFrameTransform()
-plotter = Plotter()
-nulls_before = dftransformer.count_nulls(dataframe)
-dataframe = dftransformer.drop_columns(dataframe)
-dataframe = dftransformer.impute_columns(dataframe)
-nulls_after = dftransformer.count_nulls(dataframe)
-plotter.plot_nulls_before_after(nulls_before, nulls_after)
+### `db_util.ipynb`
+An interactive Jupyter Notebook that documents the workflow of connecting to an online server, downloading a database, and saving it as `loan_payments.csv`. It demonstrates data manipulation techniques and visualization functions, providing a comprehensive guide for similar data analysis tasks.
+
+### `DFInfo.py`
+Implements functions to calculate and filter missing values in dataframes, offering a detailed overview of data quality by evaluating missing values' percentage across different columns.
+
+### `DFTransform.py`
+Provides robust functionalities for transforming dataframe columns based on specified criteria. This includes zipping lists, formatting, and updating dataframes with transformed data, ensuring data integrity and alignment for analysis.
+
+### `DTransform.py`
+Closely associated with `DFTransform.py`, this script specializes in specific data transformation processes, complementing the broader functionalities of its counterpart.
+
+### `GraphPlotter.py`
+Facilitates advanced graph plotting, particularly focusing on visualizing the effect of DFTransform and DTransform methods on a given dataframe. It supports creating intricate figures with subplots, enhancing the data analysis visual outcomes.
+
+## Usage Guide
+
+Execute the scripts based on your data analysis requirements. For the Jupyter Notebook, it can be opened and run using Jupyter Lab or Notebook interface by executing the following.
+
+```bash
+jupyter notebook db_util.ipynb
 ```
+
+Or execute the following to run each script automatically.
+
+```bash
+python3 db_util.py
+```
+
+This project is structured to provide a comprehensive toolkit for data analysis and visualization tasks, embodying best practices in code organization and documentation.
