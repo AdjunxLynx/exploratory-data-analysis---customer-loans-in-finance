@@ -7,15 +7,18 @@ import os
 class DataFrameTransform:
     def count_nulls(self, dataframe):
         """returns the total amount of nulls in a dataframe"""
+        
         return dataframe.isnull().sum()
 
     def drop_columns(self, dataframe, threshold=0.5):
         """this function drops all columns where the null value percentage is above a given %, default being 50%"""
+        
         columns_to_drop = [column for column in dataframe.columns if dataframe[column].isnull().mean() > threshold]
         return dataframe.drop(columns=columns_to_drop, axis=1)
 
     def impute_columns(self, dataframe):
         """For quantative data, imputes data into columns by the column mean, for qualitative, imputes by the most frequent"""
+        
         for column in dataframe.columns:
             if dataframe[column].dtype == 'float64' or dataframe[column].dtype == 'int64':
                 dataframe[column].fillna(dataframe[column].mean(), inplace=True)
@@ -24,6 +27,8 @@ class DataFrameTransform:
         return dataframe
     
     def drop_columns_in_series(self, series, columns):
+        """Drops all indexs where the index name is in columns list to drop"""
+        
         for column in columns:
             try:
                 series = series.drop(column)
@@ -32,11 +37,16 @@ class DataFrameTransform:
         return series
     
     def transform_header(self, list1, list2, list3):
-        # Zip the two lists together and format each pair as "item1(item2)"
+        """creates a new header in the format of 'item1(item2|item3)', where item1 should be column name, item2 should be transformation type used to reduce skewness
+        and item3 should be lambda used to transform and unskew data (where applicable)"""
+        
         transformed_header = [f"{item1}({item2}|{item3})" for item1, item2, item3 in zip(list1, list2, list3)]
         return transformed_header
     
     def remove_skewness(self, dataframe, qualitative_list):
+        """Transforms each column to reduce skewness. chooses best method to reduce skewness by applying all of them (logarithmic, square root, cube root, boxcox and yeo)
+        ,then finding out which one has the largest affect. Writes to a file on the transformation method used for each column, incase of future use."""
+        
         unskewed_dataframe = pd.DataFrame()
         transformation_details = {}
         
@@ -109,6 +119,7 @@ class DataFrameTransform:
     def merge_dataframes(self, full_df, transformed_df):
         """Merges two DataFrames, prioritizing data from transformed_df for overlapping columns.
         The resulting DataFrame retains the column order from full_df"""
+        
         # Ensure the index aligns for proper updating
         full_df = full_df.copy()
         transformed_df = transformed_df.set_index(full_df.index)
@@ -122,6 +133,8 @@ class DataFrameTransform:
         return full_df
     
     def find_closest_outliers(self,dataframe, outlier_columns):
+        """creates a dictionary of each column chosen to remove outliers, with a list of 2 variables to determine how to remove outlier values."""
+        
         bounds = {}
         # Select only numerical columns for outlier bounds calculation
         numeric_cols = dataframe.select_dtypes(include=['number']).columns
@@ -142,6 +155,7 @@ class DataFrameTransform:
 
     def calculate_outlier_counts(self, dataframe, outlier_columns):
         """Calculates the count of outliers in each column of the dataframe."""
+        
         outlier_counts = {}
         for column in dataframe.select_dtypes(include=['number']).columns:
             if column in outlier_columns:
@@ -173,7 +187,9 @@ class DataFrameTransform:
         matrix = matrix.dropna(axis = 1, how = "all")
         return matrix
     
-    def drop_overcorrelated(self, dataframe, matrix, threshold=0.7, repeats = 2):
+    def drop_overcorrelated(self, dataframe, matrix, threshold=0.7):
+        """drops all columns where there is a correlation value above a certain threshold(default is 0.7). Will only drop one of the columns that are overly correlated"""
+        
         # Compute the absolute correlation matrix from the dataframe directly
         
         abs_matrix = matrix.abs()

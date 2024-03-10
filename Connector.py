@@ -17,6 +17,7 @@ class RDSDatabaseConnector():
 
     def database_to_pandas_dataframe(self, table_name = "loan_payments"):
         """uses SQLAlchemy engine to connect to online database, download all data in the table and to return as a pandas dataframe"""
+        
         with self.engine.connect() as conn:
             database = conn.execute(text(f"SELECT * FROM {table_name}"))
             dataframe = pd.DataFrame(data = database)

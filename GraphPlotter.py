@@ -41,7 +41,20 @@ class Plotter:
         plt.close(fig)
         
     def visualise_outliers(self, dataframe, outlier_columns, show = True):
-                #columns where I deemed the outliers to be irrelevent to analysing and viewing the dataset as a whole
+        """creates a boxplot of each column in input to visualise outliers in the dataset"""
+        
+        #columns where I deemed the outliers to be irrelevent to analysing and viewing the dataset as a whole.
+        
+        #funded_amount/inv because there are so little, and too far from median.
+        # open/total_accounts because it is odd to have 0 accounts open.
+        # outliers above 5 open accounts seem irrelevent to me as there are so little of them.
+        # delinq because they are so far from the only value.
+        # total_payment/inv because the values are too from the median.
+        # last_payment_amount as the values are too scattered bellow the lower bounds.
+        
+        
+        
+        
         for column in dataframe.columns:
             if column in outlier_columns:
                 if show:
@@ -52,6 +65,8 @@ class Plotter:
                     plt.close()
             
     def plot_correlation(self, matrix):
+        """creates a heatmap given a correlation matrix to help visualise correlations between columns"""
+        
         plt.figure(figsize=(12, 8))
         plt.title(f"HeatMap for correlation")
         sns.heatmap(matrix, annot=True, fmt=".2f", cmap='coolwarm', annot_kws={"size": 7})
@@ -59,6 +74,8 @@ class Plotter:
         plt.close()
                 
     def plot_correlation_before_after(self, before_matrix, after_matrix):
+        """creates two heatmaps, one visualising the dataframe before, and after removing columns"""
+        
         # Create a figure with 2 subplots side by side
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(30, 8))
 
@@ -69,3 +86,4 @@ class Plotter:
 
         plt.show()
         plt.close(fig)
+        
