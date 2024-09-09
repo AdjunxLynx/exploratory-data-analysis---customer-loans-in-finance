@@ -1,22 +1,25 @@
 from pandasgui import show
 import numpy as np
 import pandas as pd
+import warnings
 
 class DataFrameInfo():
-    def call_all_information(self, dataframe):
+    def call_all_information(self, dataframe, prnt):
         """Calls all functions that analyses dataframe, and shows that as a smaller dataframe"""
-        
-        self.describe_all_columns(dataframe)
+        warnings.filterwarnings("ignore", category=FutureWarning, module="show")
+
+        self.describe_all_columns(dataframe, prnt)
         statistics_dataframe = self.get_statistics(dataframe)
         show(statistics_dataframe)
-        self.get_shape(dataframe)
+        self.get_shape(dataframe, prnt)
 
         return dataframe
 
-    def describe_all_columns(self, dataframe):
+    def describe_all_columns(self, dataframe, prnt):
         """prints analysis on the dataframe, giving quick information on the dataframe"""
         
-        print(dataframe.describe(percentiles = [.5]))
+        if prnt:
+            print(dataframe.describe(percentiles = [.5]))
     
     def get_distinct_categories(self, dataframe):
         """Gets a list of all columns in the current dataframe with dtype of category
@@ -90,7 +93,7 @@ class DataFrameInfo():
 
         return column_names
 
-    def get_shape(self, dataframe):
+    def get_shape(self, dataframe, prnt):
         """prints the shape (dimension) of the dataframe given"""
-        
-        print("The Dataframe Shape is: " , dataframe.shape)
+        if prnt:
+            print("The Dataframe Shape is: " , dataframe.shape)

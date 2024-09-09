@@ -1,5 +1,4 @@
 import pandas as pd
-from pandasgui import show
 
 class DataTransform():
     def __init__(self):
@@ -11,8 +10,8 @@ class DataTransform():
     def call_all_cleaners(self, dataframe):
         """puts all the dataframe cleaning function into one callable function"""
         
-        numeric_list = self.get_numeric_list(dataframe)
-        date_list = self.get_date_list(dataframe)
+        numeric_list = self.get_numeric_list()
+        date_list = self.get_date_list()
         
         dataframe = self.set_column_to_custom(dataframe)
         dataframe = self.set_column_to_date(dataframe, date_list)
@@ -23,14 +22,15 @@ class DataTransform():
 
         return(dataframe)
     
-    def drop_columns_in_series(self, series, columns):
+    def drop_columns_in_series(self, series, columns, prnt):
         """Drops all indexs where the index name is in columns list to drop"""
         
         for column in columns:
             try:
                 series = series.drop(column)
             except:
-                print(f"Error Dropping {column}, Moving On")
+                if prnt:
+                    print(f"Error Dropping {column}, Moving On")
         return series
     
     def get_skewed_columns(self, dataframe, qualitative_list, threshold=0.5):
@@ -49,13 +49,13 @@ class DataTransform():
         return skewed_dataframe
         
     
-    def get_numeric_list(self, dataframe):
+    def get_numeric_list(self):
         """returns a list of the column names that are numeric"""
         
         numeric_list = ["id", "member_id", "loan_amount", "funded_amount", "funded_amount_inv", "term",  "int_rate", "instalment", "employment_length", "annual_inc", "dti", "delinq_2yrs", "inq_last_6mths", "mths_since_last_delinq",  "open_accounts", "total_accounts", "out_prncp", "out_prncp_inv", "total_payment", "total_payment_inv", "total_rec_prncp", "total_rec_int", "total_rec_late_fee", "recoveries", "collection_recovery_fee", "last_payment_amount", "collections_12_mths_ex_med", "mths_since_last_major_derog"]
         return numeric_list
     
-    def get_date_list(self, dataframe):
+    def get_date_list(self):
         """returns a list of the column names that are dates"""
         
         date_list = ["issue_date", "earliest_credit_line", "last_payment_date", "next_payment_date", "last_credit_pull_date"]
@@ -74,9 +74,8 @@ class DataTransform():
 
     def set_column_to_date(self, dataframe, date_list):
         """sets a list of column names to dtype datetime in the dataframe given"""
-        
         for column in date_list:
-            dataframe[column] = pd.to_datetime(dataframe[column], errors = "coerce", format="%Y-%m-%d").dt.date
+            dataframe[column] = pd.to_datetime(dataframe[column], errors = "coerce", format='%b-%Y').dt.date
         return(dataframe)
 
     def set_column_to_custom(self, dataframe):
@@ -102,7 +101,7 @@ class DataTransform():
         some dtypes are also ordered"""
         
         for column in categorical_list:
-            dataframe[column] = pd.Categorical(dataframe[column]).codes
+            dataframe[column] = pd.Categorical(dataframe[column])
             
         return(dataframe)
     

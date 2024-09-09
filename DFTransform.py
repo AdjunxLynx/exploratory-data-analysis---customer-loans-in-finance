@@ -11,7 +11,7 @@ class DataFrameTransform:
         
         return dataframe.isnull().sum()
 
-    def drop_columns(self, dataframe, threshold=0.5):
+    def drop_columns(self, dataframe, threshold=0.7):
         """this function drops all columns where the null value percentage is above a given %, default being 50%"""
         
         columns_to_drop = [column for column in dataframe.columns if dataframe[column].isnull().mean() > threshold]
@@ -22,19 +22,23 @@ class DataFrameTransform:
         
         for column in dataframe.columns:
             if dataframe[column].dtype == 'float64' or dataframe[column].dtype == 'int64':
-                dataframe[column].fillna(dataframe[column].mean(), inplace=True)
+
+                dataframe.fillna({column: dataframe[column].mean()}, inplace = True)
             else:
-                dataframe[column].fillna(dataframe[column].mode()[0], inplace=True)
+
+                dataframe.fillna({column: dataframe[column].mode()[0]}, inplace = True)
         return dataframe
     
-    def drop_columns_in_series(self, series, columns):
+    def drop_columns_in_series(self, series, columns, prnt):
         """Drops all indexs where the index name is in columns list to drop"""
         
         for column in columns:
             try:
                 series = series.drop(column)
             except:
-                print(f"Error Dropping {column}, Moving On")
+                if prnt:
+                    print(f"Error Dropping {column}, Moving On")
+                pass
         return series
     
     def transform_header(self, list1, list2, list3):
@@ -44,7 +48,7 @@ class DataFrameTransform:
         transformed_header = [f"{item1}({item2}|{item3})" for item1, item2, item3 in zip(list1, list2, list3)]
         return transformed_header
     
-    def remove_skewness(self, dataframe, qualitative_list):
+    def remove_skewness(self, dataframe, qualitative_list, prnt):
         """Transforms each column to reduce skewness. chooses best method to reduce skewness by applying all of them (logarithmic, square root, cube root, boxcox and yeo)
         ,then finding out which one has the largest affect. Writes to a file on the transformation method used for each column, incase of future use."""
         
@@ -52,7 +56,7 @@ class DataFrameTransform:
         transformation_details = {}
         
         columns = dataframe.select_dtypes(include=['number']).columns
-        columns = self.drop_columns_in_series(columns, qualitative_list)
+        columns = self.drop_columns_in_series(columns, qualitative_list, prnt)
 
         transformation_list = []
         lambda_list = []
@@ -99,15 +103,16 @@ class DataFrameTransform:
                 if abs(new_skewness) < abs(compare_value):
                     transformation_method = "yeo"
                     compare_value = temp.skew()
-                    
-            #print(f"Transformed column '{column}'using transformation method: {transformation_method}")
+               
+            if prnt:  
+                print(f"Transformed column '{column}'using transformation method: {transformation_method}")
             
             unskewed_dataframe = pd.concat([unskewed_dataframe, temp], axis = 1)
             lambda_list.append(fitted_lambda)
             transformation_list.append(transformation_method)
             transformation_details[column] = [transformation_method, fitted_lambda]
-
-        print("Done Transformations")
+        if prnt:
+            print("Done Transformations")
         transformation_method = self.transform_header(columns, transformation_list, lambda_list)
         unskewed_dataframe.columns = columns
         
@@ -133,7 +138,7 @@ class DataFrameTransform:
         # Return the full DataFrame with updated data
         return full_df
     
-    def find_closest_outliers(self,dataframe, outlier_columns):
+    def find_closest_outliers(self,dataframe, outlier_columns, prnt):
         """creates a dictionary of each column chosen to remove outliers, with a list of 2 variables to determine how to remove outlier values."""
         
         bounds = {}
@@ -148,7 +153,8 @@ class DataFrameTransform:
                 lower_bound = Q1 - 1.5 * IQR
                 upper_bound = Q3 + 1.5 * IQR
                 bounds[column] = [lower_bound, upper_bound]
-        print(bounds)
+        if prnt:
+            print(bounds)
         return bounds
 
 
@@ -188,7 +194,7 @@ class DataFrameTransform:
         matrix = matrix.dropna(axis = 1, how = "all")
         return matrix
     
-    def drop_overcorrelated(self, dataframe, matrix, threshold=0.7):
+    def drop_overcorrelated(self, dataframe, matrix, ignore_list, threshold=0.7):
         """drops all columns where there is a correlation value above a certain threshold(default is 0.7). Will only drop one of the columns that are overly correlated"""
         
         # Compute the absolute correlation matrix from the dataframe directly
@@ -197,7 +203,7 @@ class DataFrameTransform:
         # columns to drop
         drop_list = []
         # if columns has already been considered for dropping
-        considered = set()
+        considered = set(ignore_list)
 
         # Iterate over the columns of the correlation matrix
         for i, column in enumerate(abs_matrix.columns):
