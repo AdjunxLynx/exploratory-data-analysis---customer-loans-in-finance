@@ -15,7 +15,7 @@ class DataTransform():
         
         dataframe = self.set_column_to_custom(dataframe)
         dataframe = self.set_column_to_date(dataframe, date_list)
-
+        
         dataframe = self.set_numeric(dataframe, numeric_list)
         dataframe = self.set_qualitative(dataframe,self.qualitative_list)
         dataframe = dataframe.rename(columns = {"Unnamed: 0": "Index"})

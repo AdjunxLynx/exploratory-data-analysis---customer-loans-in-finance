@@ -90,21 +90,7 @@ class DataFrameTransform:
                     transformation_method = "cbrt"
                     compare_value = temp.skew()
                     
-            if (dataframe[column] > 0).all():
-                temp, fitted_lambda = boxcox(dataframe[column])
-                temp = pd.Series(temp)
-                new_skewness = float(temp.skew())
-                if abs(new_skewness) < abs(compare_value):
-                    transformation_method = "boxcox"
-                    compare_value = temp.skew()
             
-            if True: #both positive and negative skewness allowed
-                temp, fitted_lambda = yeojohnson(dataframe[column])
-                temp = pd.Series(temp)
-                new_skewness = float(temp.skew())
-                if abs(new_skewness) < abs(compare_value):
-                    transformation_method = "yeo"
-                    compare_value = temp.skew()
                
             transformed_methods.append(f"Transformed column '{column}'using transformation method: {transformation_method}, {lambda_list} \n")
             
@@ -117,6 +103,23 @@ class DataFrameTransform:
         unskewed_dataframe.columns = columns
 
         return unskewed_dataframe, transformed_methods
+    
+        if (dataframe[column] > 0).all():
+                print(dataframe[column].min())
+                temp, fitted_lambda = boxcox(dataframe[column])
+                temp = pd.Series(temp)
+                new_skewness = float(temp.skew())
+                if abs(new_skewness) < abs(compare_value):
+                    transformation_method = "boxcox"
+                    compare_value = temp.skew()
+            
+        if True: #both positive and negative skewness allowed
+            temp, fitted_lambda = yeojohnson(dataframe[column])
+            temp = pd.Series(temp)
+            new_skewness = float(temp.skew())
+            if abs(new_skewness) < abs(compare_value):
+                transformation_method = "yeo"
+                compare_value = temp.skew()
     
     def merge_dataframes(self, full_df, transformed_df):
         """Merges two DataFrames, prioritizing data from transformed_df for overlapping columns.
