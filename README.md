@@ -26,7 +26,6 @@ This project comprises a suite of Python scripts and a Jupyter Notebook designed
 3. **Data Analysis**: Use `DataFrameInfo` to get insights into your data.
 4. **Visualisation**: Utilise `Plotter` to visualise the impact of your data cleaning process.
 
-
 ## Installation
 
 Ensure you have the required libraries installed. You can install these using pip:
@@ -80,7 +79,20 @@ Or execute the following to run each script automatically.
 python3 db_util.py
 ```
 
+run
+
+```bash
+jupyter notebook Insights.ipynb
+```
+or 
+```bash 
+python3 Insights.py
+```
+To visualise the data and get examples of how certain columns may cause a loan to become 'Charged off' etc.
+
 This project is structured to provide a comprehensive toolkit for data analysis and visualization tasks, embodying best practices in code organization and documentation.
+
+
 
 ## License
 

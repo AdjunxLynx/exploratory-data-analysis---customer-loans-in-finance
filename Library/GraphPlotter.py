@@ -31,29 +31,22 @@ class Plotter:
     def plot_outliers_before_after(self, before, after):
         """creates two barcharts of the columns in the dataframe, before and after they have been cleaned of all outlier values. shows them side by side"""
         
-        
         fig, ax = plt.subplots(1, 2, figsize=(12, 6))
         plt.tight_layout()
         plt.subplots_adjust(bottom=0.4)
         before.plot.bar(ax=ax[0], title="Amount of outliers before")
         after.plot.bar(ax=ax[1], title="Amount of outliers after")
+        
+        ax[0].tick_params(axis='x', rotation=45)
+        ax[1].tick_params(axis='x', rotation=45) 
+        plt.setp(ax[0].get_xticklabels(), ha="right")
+        plt.setp(ax[1].get_xticklabels(), ha="right")
+        
         plt.show()
         plt.close(fig)
         
     def visualise_outliers(self, dataframe, outlier_columns, show = True):
         """creates a boxplot of each column in input to visualise outliers in the dataset"""
-        
-        #columns where I deemed the outliers to be irrelevent to analysing and viewing the dataset as a whole.
-        
-        # funded_amount/inv because there are so little, and too far from median.
-        # open/total_accounts because it is odd to have 0 accounts open.
-        # outliers above 5 open accounts seem irrelevent to me as there are so little of them.
-        # delinq because they are so far from the only value.
-        # total_payment/inv because the values are too from the median.
-        # last_payment_amount as the values are too scattered bellow the lower bounds.
-        
-        
-        
         
         for column in dataframe.columns:
             if column in outlier_columns:

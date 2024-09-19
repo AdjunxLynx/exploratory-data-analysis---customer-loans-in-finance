@@ -1,4 +1,5 @@
 import pandas as pd
+from pandasgui import show
 
 class DataTransform():
     def __init__(self):
@@ -42,10 +43,15 @@ class DataTransform():
         return skewed_columns
     
     def get_skewed_dataframe(self, dataframe, skewed_columns):
-        """returns the sub frame of dataframe that only includes the columns inputted"""
+        """returns the sub frame of dataframe that only includes the columns inputted, also returns a list of columns where skewness is above 5"""
         
         skewed_dataframe = dataframe[skewed_columns]
-        return skewed_dataframe
+        
+        skew_values = skewed_dataframe.skew()
+        median_list = skew_values[skew_values > 5].index.to_list()
+        print(f"Columns with skewness greater than 5 are: {median_list}")
+        
+        return skewed_dataframe, median_list
         
     
     def get_numeric_list(self):

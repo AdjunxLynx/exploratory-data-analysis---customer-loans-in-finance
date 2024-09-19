@@ -5,11 +5,11 @@ import warnings
 class DataFrameInfo():
     def call_all_information(self, dataframe):
         """Calls all functions that analyses dataframe, and shows that as a smaller dataframe"""
+        
         self.describe_all_columns(dataframe)
-        statistics_dataframe = self.get_statistics(dataframe)
+        self.get_statistics(dataframe)
         self.get_shape(dataframe)
 
-        return dataframe
 
     def describe_all_columns(self, dataframe):
         """prints analysis on the dataframe, giving quick information on the dataframe"""
@@ -37,7 +37,7 @@ class DataFrameInfo():
         return distinct_values_df
 
     def get_statistics(self, dataframe):
-        """returns a Dataframe from the inputted Dataframe, giving statistical data on the Dataframe such as
+        """Prints a Dataframe from the inputted Dataframe, giving statistical data on the Dataframe such as
         non-null count, mean value of all the data in a column, minimum value, maximum value, standard deviation of the column
         median value of column, percentage of value that is Null (np.NaN), amount of distinct values in categorical columns, most frequent value"""
 
@@ -54,7 +54,7 @@ class DataFrameInfo():
         dataframes = [count, mean, min, max, std, med, mode, null_percentage_df, distinct_df]
         statistical_df = pd.concat(dataframes, axis = 1)
         statistical_df = statistical_df.rename(columns={0: "Count", 1: "Mean", 2: "Min", 3: "Max", 4: "Standard Deviation", 5: "Median"}, errors = "raise")
-        return statistical_df
+        print(statistical_df)
     
     def get_mode(self, dataframe):
         """returns the most frequent value for each column in the given dataframe"""
@@ -62,8 +62,6 @@ class DataFrameInfo():
         mode_series = dataframe.mode().iloc[0]
         mode_df = pd.DataFrame({"Mode": mode_series})
         return mode_df
-
-   
 
     def get_null_percentage(self, dataframe):
         """returns the percentage of null values in the column"""

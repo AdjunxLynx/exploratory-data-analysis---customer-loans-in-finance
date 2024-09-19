@@ -1,4 +1,5 @@
 from scipy.stats import boxcox, yeojohnson
+from pandasgui import show
 
 import numpy as np
 import pandas as pd
@@ -20,15 +21,16 @@ class DataFrameTransform:
         print(f"Dropping columns as the amount of nulls in the column is above {threshold*100}%: \n {columns_to_drop}")
         return dataframe.drop(columns=columns_to_drop, axis=1)
 
-    def impute_columns(self, dataframe):
-        """For quantative data, imputes data into columns by the column mean, for qualitative, imputes by the most frequent"""
+    def impute_columns(self, dataframe, median_list):
+        """For quantative data, imputes data into columns by the column median if highly skewed, and mean if not. for qualititave data, uses the mode to impute data"""
         
         for column in dataframe.columns:
             if dataframe[column].dtype == 'float64' or dataframe[column].dtype == 'int64':
-
-                dataframe.fillna({column: dataframe[column].mean()}, inplace = True)
+                if column in median_list:
+                    dataframe.fillna({column: dataframe[column].median()}, inplace = True)
+                else:
+                    dataframe.fillna({column: dataframe[column].mean()}, inplace = True)
             else:
-
                 dataframe.fillna({column: dataframe[column].mode()[0]}, inplace = True)
         return dataframe
     
@@ -54,16 +56,15 @@ class DataFrameTransform:
         ,then finding out which one has the largest affect. Writes to a file on the transformation method used for each column, incase of future use."""
         
         unskewed_dataframe = pd.DataFrame()
-        transformation_details = {}
         
         columns = dataframe.select_dtypes(include=['number']).columns
         columns = self.drop_columns_in_series(columns, qualitative_list)
 
-        transformation_list = []
-        transformed_methods = []
-        lambda_list = []
-        
+        transformed_methods = ""
+
+        #goes through each column, and finds the functions that will cause the least amount of skew
         for column in columns:
+            transformation_method = "None"
             compare_value = dataframe[column].skew() #original skewed value to compare against
 
             if (dataframe[column] > 0).all():
@@ -92,16 +93,12 @@ class DataFrameTransform:
                     
             
                
-            transformed_methods.append(f"Transformed column '{column}'using transformation method: {transformation_method}, {lambda_list} \n")
+            transformed_methods += (f"Transformed column '{column}'using transformation method: {transformation_method}, {fitted_lambda} \n")
             
             unskewed_dataframe = pd.concat([unskewed_dataframe, temp], axis = 1)
-            lambda_list.append(fitted_lambda)
-            transformation_list.append(transformation_method)
-            transformation_details[column] = [transformation_method, fitted_lambda]
             
-        transformation_method = self.transform_header(columns, transformation_list, lambda_list)
+        show(unskewed_dataframe)
         unskewed_dataframe.columns = columns
-
         return unskewed_dataframe, transformed_methods
     
         if (dataframe[column] > 0).all():
@@ -206,11 +203,9 @@ class DataFrameTransform:
             if column not in considered:
                 for j, other_column in enumerate(abs_matrix.columns[i + 1:], i + 1):
                     
-                    if abs_matrix.iloc[i, j] > threshold and other_column not in considered:
+                    if (abs_matrix.iloc[i, j] > threshold or np.isnan(abs_matrix.iloc[i, j])) and other_column not in considered:
                         drop_list.append(other_column)
                         considered.add(other_column)
-                        
-                        
 
         # Drop the identified columns from the original DataFrame, and any null columns
         dataframe = dataframe.drop(columns=drop_list)
