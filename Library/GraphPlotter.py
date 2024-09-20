@@ -82,7 +82,8 @@ class Plotter:
         
     def plot_recovery_rate(self, recovery_percentage):
         plt.figure(figsize=(10, 6))
-        plt.hist(recovery_percentage, bins=10, color='blue', edgecolor='black')
+        bins = range(0, int(max(recovery_percentage)) + 20, 20)  # Adjust step size as needed
+        plt.hist(recovery_percentage, bins=bins, color='blue', edgecolor='black')
         plt.xlabel('Recovery Percentage (%)')
         plt.ylabel('Number of Loans')
         plt.title('Distribution of Loan Recovery Percentages')
@@ -90,7 +91,8 @@ class Plotter:
         
     def plot_loan_to_pay(self, loans_percentage_to_pay):
         plt.figure(figsize=(10, 6))
-        plt.hist(loans_percentage_to_pay, bins=10, color='blue', edgecolor='black')
+        bins = range(0, int(max(loans_percentage_to_pay)) + 20, 20)  # Adjust step size as needed
+        plt.hist(loans_percentage_to_pay, bins=bins, color='blue', edgecolor='black')
         plt.xlabel('Percentage left to pay (%)')
         plt.ylabel('Number of Loans')
         plt.title('Distribution of Loan left to pay Percentages')
@@ -98,10 +100,11 @@ class Plotter:
         
     def plot_amount_payed_6mths(self, amount_payed_6mths):
         plt.figure(figsize=(10, 6))
-        plt.hist(amount_payed_6mths, bins=10, color='blue', edgecolor='black')
+        bins = range(0, int(max(amount_payed_6mths)) + 1000, 1000)  # Adjust step size as needed
+        plt.hist(amount_payed_6mths,bins = bins, color='blue', edgecolor='black')
         plt.xlabel('Projected total payment for 6 months (£)')
         plt.ylabel('Number of Loans')
-        plt.title('Distribution of projected total payments for 6 months')
+        plt.title('Projected total repayment for the next 6 months')
         plt.show()
         
     

@@ -27,14 +27,10 @@ class DataFrameInfo():
         returns a DataFrame with NaN values where the column dtype is not of category,
         and then the distinct count when the column dtype is"""
         
-        categorical_columns = dataframe.select_dtypes(include=["category"]).columns.tolist()
         distinct_values_count = {}
 
         for column in dataframe.columns:
-            if column in categorical_columns:
-                distinct_values_count[column] = dataframe[column].nunique()
-            else:
-                distinct_values_count[column] = np.nan
+            distinct_values_count[column] = dataframe[column].nunique()
 
         distinct_values_df = pd.DataFrame.from_dict(distinct_values_count, orient="index", columns=["Distinct_Values_Count"])
         distinct_values_df.index.name = "Column_Name"
