@@ -97,7 +97,6 @@ class DataFrameTransform:
             
             unskewed_dataframe = pd.concat([unskewed_dataframe, temp], axis = 1)
             
-        show(unskewed_dataframe)
         unskewed_dataframe.columns = columns
         return unskewed_dataframe, transformed_methods
     

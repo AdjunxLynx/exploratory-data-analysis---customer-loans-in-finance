@@ -6,7 +6,12 @@ class DataFrameInfo():
     def call_all_information(self, dataframe):
         """Calls all functions that analyses dataframe, and shows that as a smaller dataframe"""
         
-        self.describe_all_columns(dataframe)
+        try:
+            dataframe = dataframe.drop(columns=["Unnamed: 0"])
+        except:
+            pass
+        
+        #self.describe_all_columns(dataframe)
         self.get_statistics(dataframe)
         self.get_shape(dataframe)
 
