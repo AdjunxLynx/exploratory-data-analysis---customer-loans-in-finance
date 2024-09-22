@@ -19,10 +19,8 @@ class Insights:
         #this number represents the % of a loan that has been payed, including interest
         loans_percentage_to_pay = ((dataframe["total_payment"] / dataframe["total_to_pay_including_int"])) * 100
         projected_payment_6mths = dataframe["instalment"] * 6
+        return loans_recovery_percentage, loans_percentage_to_pay, projected_payment_6mths
 
-        plotter.plot_recovery_rate(loans_recovery_percentage)
-        plotter.plot_loan_to_pay(loans_percentage_to_pay)
-        plotter.plot_amount_payed_6mths(projected_payment_6mths)
         
         
     def visualise_loss(self, dataframe):
@@ -76,21 +74,4 @@ class Insights:
         print(f"There are {amount_of_late_payments} people late on their payments. A total of £{expected_loss} would be lost if they were set to Charged Off")
         print(f"The average expected loss per person is £{avg_expected_loss}")
         print(f"If customers were to finish their term, the projected loss would be £{loss_if_term_finished}")
-        print(f"Late and Defaulted payments represent {percentage_of_late_and_defaulted}% of all revenue")\
-         
-            
-    def indicators_of_loss(self, dataframe):
-        
-        statuses = ["Charged Off", "Late (31-120 days)","Late (16-30 days)", "Default"]
-        
-        sub_dataframe = dataframe[dataframe["loan_status"].isin(statuses)]
-        self.plotter.visualise_loan_grade(sub_dataframe)
-        self.plotter.visualise_loan_subgrade(sub_dataframe)
-        self.plotter.visualise_loan_home(sub_dataframe)
-        self.plotter.visualise_loan_purpose(sub_dataframe)
-        self.plotter.visualise_loan_term(sub_dataframe)
-        
-        print("Sub grades have a direct correlation with loans being Charged off, and this extends to all late payments, as the grades with high charged off rates, also have high late payment rates")
-        print("The same goes with the home ownership status. If you rent or pay mortgage on your home, the loan is likely to end up Charged Off. ")
-        print("The loan purpose also has a correlation, albeit less impactful. Home improvements, debt consolidation, credit cards or others seem to be a high risk loan, as these are likely to be charged off. Being late on the loans will likely end up being CHarged off too")
-        print("Having a shorter term length will result in being more likely to be charged off, however the term length doesnt seem to be affected by wether you are late on the loan")
+        print(f"Late and Defaulted payments represent {percentage_of_late_and_defaulted}% of all revenue")

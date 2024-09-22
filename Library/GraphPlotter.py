@@ -128,7 +128,7 @@ class Plotter:
         
     def visualise_loan_grade(self, dataframe):
         plt.figure(figsize=(10, 6))
-        sns.countplot(data=dataframe.T, x="grade", hue="loan_status")
+        sns.countplot(data=dataframe, x="grade", hue="loan_status")
         plt.title("Distribution of Loan Sub Grades by Loan Status")
         plt.xlabel("Loan Grade")
         plt.ylabel("Number of Loans")
@@ -145,7 +145,7 @@ class Plotter:
         
     def visualise_loan_purpose(self, dataframe):
         plt.figure(figsize=(12, 8))
-        sns.countplot(data=dataframe, y="purpose", hue="loan_status", order=dataframe["purpose"].value_counts().index)
+        sns.countplot(data=dataframe, x="purpose", hue="loan_status", order=dataframe["purpose"].value_counts().index)
         plt.title("Distribution of Loan Purposes by Loan Status")
         plt.xlabel("Number of Loans")
         plt.ylabel("Loan Purpose")
