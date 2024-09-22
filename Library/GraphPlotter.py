@@ -145,6 +145,7 @@ class Plotter:
         
     def visualise_loan_purpose(self, dataframe):
         plt.figure(figsize=(12, 8))
+        plt.tick_params(axis='x', rotation=45) 
         sns.countplot(data=dataframe, x="purpose", hue="loan_status", order=dataframe["purpose"].value_counts().index)
         plt.title("Distribution of Loan Purposes by Loan Status")
         plt.xlabel("Number of Loans")
